@@ -37,10 +37,6 @@
   .meta-tag+.meta-tag::before{content:'·';margin-right:0.5rem;}
   .dl-all-btn{background:var(--text);color:#fff;border:none;font-family:'Jost',sans-serif;font-size:0.72rem;font-weight:400;letter-spacing:0.1em;text-transform:uppercase;padding:0.55rem 1.3rem;border-radius:2px;cursor:pointer;display:none;text-decoration:none;transition:opacity 0.2s;}
   .dl-all-btn:hover{opacity:0.75;}
-  .sort-btns{display:none;gap:0.25rem;}
-  .sort-btn{background:none;border:1px solid var(--border);color:var(--muted);font-family:'Jost',sans-serif;font-size:0.65rem;letter-spacing:0.08em;padding:0.25rem 0.6rem;border-radius:2px;cursor:pointer;transition:all 0.15s;}
-  .sort-btn.active{background:var(--text);color:#fff;border-color:var(--text);}
-  .sort-btn:hover:not(.active){color:var(--text);border-color:var(--text);}
 
   /* GALLERY */
   .gallery-wrap{padding:1.5rem 1.5rem 3rem;}
@@ -126,11 +122,6 @@ const API_KEY = 'AIzaSyB5icooN6gEMtDLpxMQH2-5JL0NcPvNdz8';
     <div class="meta-tag" id="metaDate" style="display:none"></div>
     <div class="meta-tag" id="metaCount"></div>
     <a class="dl-all-btn" id="dlAllBtn" href="#" target="_blank" rel="noopener">↓ 一括ダウンロード（ZIP）</a>
-    <div class="sort-btns" id="sortBtns">
-      <button class="sort-btn active" id="sortName" onclick="sortPhotos('name')">NAME</button>
-      <button class="sort-btn" id="sortNew" onclick="sortPhotos('new')">NEW</button>
-      <button class="sort-btn" id="sortOld" onclick="sortPhotos('old')">OLD</button>
-    </div>
   </div>
 </div>
 
@@ -161,7 +152,7 @@ const API_KEY = 'AIzaSyB5icooN6gEMtDLpxMQH2-5JL0NcPvNdz8';
 </div>
 
 <script>
-let photos = [], allPhotos = [], currentIdx = 0, currentSort = 'name', config = {};
+let photos = [], currentIdx = 0, config = {};
 
 function getConfig() {
   const params = new URLSearchParams(window.location.search);
@@ -228,17 +219,6 @@ function applyBg(color) {
   }
 }
 
-function sortPhotos(type) {
-  currentSort = type;
-  ['name','new','old'].forEach(t => {
-    document.getElementById('sort' + t.charAt(0).toUpperCase() + t.slice(1)).classList.toggle('active', t === type);
-  });
-  let sorted = [...allPhotos];
-  if (type === 'name') sorted.sort((a,b) => a.name.localeCompare(b.name, undefined, {numeric:true}));
-  else if (type === 'new') sorted.sort((a,b) => b.created.localeCompare(a.created));
-  else if (type === 'old') sorted.sort((a,b) => a.created.localeCompare(b.created));
-  renderGallery(sorted);
-}
 
 function getColCount() {
   const w = window.innerWidth;
@@ -287,7 +267,6 @@ window.addEventListener('resize', () => {
 });
 
 function renderPhotos(list) {
-  allPhotos = list;
   applyBg(config.bg);
   document.getElementById('albumName').textContent = config.title || 'アルバム';
   document.getElementById('metaCount').textContent = list.length + ' 枚';
@@ -297,8 +276,7 @@ function renderPhotos(list) {
   const dlBtn = document.getElementById('dlAllBtn');
   dlBtn.href = 'https://drive.google.com/drive/folders/' + config.folder;
   dlBtn.style.display = 'inline-block';
-  document.getElementById('sortBtns').style.display = 'flex';
-  sortPhotos(currentSort);
+  renderGallery(list);
 }
 
 function checkPw() {
