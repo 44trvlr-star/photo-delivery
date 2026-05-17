@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>写真のダウンロード方法</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400&family=Raleway:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    font-weight: 300;
+    background: #fafafa;
+    color: #222;
+    line-height: 1.8;
+  }
+
+  header {
+    background: #fff;
+    border-bottom: 1px solid #e8e8e8;
+    padding: 2.5rem 2rem 2rem;
+    text-align: center;
+  }
+  header h1 {
+    font-family: 'Raleway', sans-serif;
+    font-weight: 300;
+    font-size: 1.5rem;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #111;
+    margin-bottom: 0.5rem;
+  }
+  header p {
+    font-size: 0.85rem;
+    color: #888;
+    letter-spacing: 0.05em;
+  }
+
+  .container {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 2.5rem 1.5rem 4rem;
+  }
+
+  .intro {
+    background: #fff;
+    border: 1px solid #e8e8e8;
+    border-radius: 4px;
+    padding: 1.5rem 1.8rem;
+    margin-bottom: 2.5rem;
+    font-size: 0.9rem;
+    color: #444;
+  }
+  .intro strong {
+    font-weight: 400;
+    color: #111;
+  }
+
+  /* OS tabs */
+  .tabs {
+    display: flex;
+    gap: 0;
+    margin-bottom: 0;
+    border-bottom: 2px solid #e0e0e0;
+    flex-wrap: wrap;
+  }
+  .tab-btn {
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    margin-bottom: -2px;
+    padding: 0.7rem 1.3rem;
+    font-family: 'Noto Sans JP', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 300;
+    letter-spacing: 0.06em;
+    color: #888;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    transition: color 0.15s;
+  }
+  .tab-btn.active {
+    color: #111;
+    border-bottom-color: #111;
+    font-weight: 400;
+  }
+  .tab-btn:hover { color: #333; }
+
+  .tab-icon { font-size: 1rem; }
+
+  .tab-panel { display: none; padding-top: 2rem; }
+  .tab-panel.active { display: block; }
+
+  /* Section */
+  .section {
+    background: #fff;
+    border: 1px solid #e8e8e8;
+    border-radius: 4px;
+    margin-bottom: 1.2rem;
+    overflow: hidden;
+  }
+  .section-title {
+    font-size: 0.72rem;
+    font-weight: 400;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: #888;
+    padding: 1rem 1.5rem 0.8rem;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  ol {
+    list-style: none;
+    counter-reset: steps;
+    padding: 1.2rem 1.5rem 1.4rem;
+  }
+  ol li {
+    counter-increment: steps;
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+    font-size: 0.88rem;
+    color: #333;
+    padding: 0.45rem 0;
+  }
+  ol li::before {
+    content: counter(steps);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.5rem;
+    height: 1.5rem;
+    border-radius: 50%;
+    background: #111;
+    color: #fff;
+    font-family: 'Raleway', sans-serif;
+    font-size: 0.72rem;
+    font-weight: 400;
+    margin-top: 0.1rem;
+    flex-shrink: 0;
+  }
+
+  .tip {
+    background: #f7f7f7;
+    border-left: 3px solid #ccc;
+    border-radius: 0 3px 3px 0;
+    margin: 0 1.5rem 1.4rem;
+    padding: 0.8rem 1rem;
+    font-size: 0.82rem;
+    color: #555;
+  }
+  .tip strong {
+    font-weight: 400;
+    color: #333;
+  }
+
+  .badge {
+    display: inline-block;
+    background: #f0f0f0;
+    border-radius: 3px;
+    padding: 0.1em 0.5em;
+    font-size: 0.8em;
+    font-family: monospace;
+    color: #444;
+  }
+
+  .highlight {
+    color: #111;
+    font-weight: 400;
+  }
+
+  /* Two columns for download options */
+  .dl-options {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: #e8e8e8;
+    border: 1px solid #e8e8e8;
+    border-radius: 4px;
+    margin-bottom: 1.2rem;
+    overflow: hidden;
+  }
+  .dl-option {
+    background: #fff;
+    padding: 1.2rem 1.3rem;
+  }
+  .dl-option-title {
+    font-size: 0.72rem;
+    font-weight: 400;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #888;
+    margin-bottom: 0.5rem;
+  }
+  .dl-option p {
+    font-size: 0.85rem;
+    color: #444;
+    line-height: 1.6;
+  }
+
+  @media (max-width: 500px) {
+    .dl-options { grid-template-columns: 1fr; }
+    .tab-btn { padding: 0.6rem 0.9rem; font-size: 0.78rem; }
+    header h1 { font-size: 1.2rem; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Photo Gallery</h1>
+  <p>写真の閲覧・ダウンロード方法</p>
+</header>
+
+<div class="container">
+
+  <div class="intro">
+    お送りしたURLを開くと、<strong>撮影した写真の一覧</strong>が表示されます。<br>
+    1枚ずつ保存することも、<strong>まとめて全枚ダウンロード</strong>することもできます。
+  </div>
+
+  <div class="tabs">
+    <button class="tab-btn active" onclick="showTab('ios')"><span class="tab-icon">📱</span>iPhone / iPad</button>
+    <button class="tab-btn" onclick="showTab('android')"><span class="tab-icon">🤖</span>Android</button>
+    <button class="tab-btn" onclick="showTab('mac')"><span class="tab-icon">💻</span>Mac</button>
+    <button class="tab-btn" onclick="showTab('win')"><span class="tab-icon">🖥</span>Windows</button>
+  </div>
+
+  <!-- iOS -->
+  <div class="tab-panel active" id="tab-ios">
+
+    <div class="dl-options">
+      <div class="dl-option">
+        <div class="dl-option-title">1枚だけ保存</div>
+        <p>写真をタップして拡大 → 右下の<span class="highlight">↓ ボタン</span>をタップ</p>
+      </div>
+      <div class="dl-option">
+        <div class="dl-option-title">全枚まとめて保存</div>
+        <p>ページ上部の<span class="highlight">「すべてダウンロード」</span>ボタンをタップ</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">1枚ずつ保存する方法</div>
+      <ol>
+        <li>ギャラリーの写真をタップして大きく表示する</li>
+        <li>右下の <span class="badge">↓</span> ボタンをタップ</li>
+        <li>Googleドライブのページが開くので、右上の <span class="badge">⋮</span> または <span class="badge">共有</span> をタップ</li>
+        <li><span class="highlight">「ダウンロード」</span> を選択 → カメラロールに保存される</li>
+      </ol>
+      <div class="tip">
+        <strong>Googleドライブアプリ</strong>がインストールされていると、よりスムーズにダウンロードできます（無料）。
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">全枚まとめてダウンロードする方法</div>
+      <ol>
+        <li>ページ上部（表紙）の <span class="highlight">「すべてダウンロード」</span> ボタンをタップ</li>
+        <li>Googleドライブのフォルダが開く</li>
+        <li>右上の <span class="badge">⋮</span> をタップ →「ダウンロード」を選択</li>
+        <li>ZIPファイルがダウンロードされる（ファイルアプリに保存される）</li>
+        <li><span class="highlight">ファイルアプリ</span>を開き、ZIPをタップして解凍 → 写真が展開される</li>
+      </ol>
+      <div class="tip">
+        <strong>注意：</strong>ZIPファイルはカメラロールには直接保存されません。ファイルアプリで解凍後、写真を長押し →「写真に保存」でカメラロールへ移動できます。
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Android -->
+  <div class="tab-panel" id="tab-android">
+
+    <div class="dl-options">
+      <div class="dl-option">
+        <div class="dl-option-title">1枚だけ保存</div>
+        <p>写真をタップして拡大 → 右下の<span class="highlight">↓ ボタン</span>をタップ</p>
+      </div>
+      <div class="dl-option">
+        <div class="dl-option-title">全枚まとめて保存</div>
+        <p>ページ上部の<span class="highlight">「すべてダウンロード」</span>ボタンをタップ</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">1枚ずつ保存する方法</div>
+      <ol>
+        <li>ギャラリーの写真をタップして大きく表示する</li>
+        <li>右下の <span class="badge">↓</span> ボタンをタップ</li>
+        <li>Googleドライブのページが開く</li>
+        <li>右上の <span class="badge">⋮</span> をタップ → <span class="highlight">「ダウンロード」</span> を選択</li>
+        <li>本体ストレージの <span class="badge">ダウンロード</span> フォルダに保存される</li>
+      </ol>
+      <div class="tip">
+        <strong>Googleドライブアプリ</strong>がインストールされているとさらに簡単です（無料）。写真を開いた状態で右上の <span class="badge">⋮</span> →「ダウンロード」でOKです。
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">全枚まとめてダウンロードする方法</div>
+      <ol>
+        <li>ページ上部（表紙）の <span class="highlight">「すべてダウンロード」</span> ボタンをタップ</li>
+        <li>Googleドライブのフォルダが開く</li>
+        <li>右上の <span class="badge">⋮</span> をタップ → <span class="highlight">「ダウンロード」</span> を選択</li>
+        <li>ZIPファイルが <span class="badge">ダウンロード</span> フォルダに保存される</li>
+        <li>ファイルマネージャーアプリでZIPを開いて解凍する</li>
+      </ol>
+      <div class="tip">
+        Googleドライブアプリを使う場合は、フォルダを長押し → 「ダウンロード」でZIPをまとめて取得できます。
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Mac -->
+  <div class="tab-panel" id="tab-mac">
+
+    <div class="dl-options">
+      <div class="dl-option">
+        <div class="dl-option-title">1枚だけ保存</div>
+        <p>写真をクリックして拡大 → 右下の<span class="highlight">↓ ボタン</span>をクリック</p>
+      </div>
+      <div class="dl-option">
+        <div class="dl-option-title">全枚まとめて保存</div>
+        <p>ページ上部の<span class="highlight">「すべてダウンロード」</span>ボタンをクリック</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">1枚ずつ保存する方法</div>
+      <ol>
+        <li>ギャラリーの写真をクリックして大きく表示する</li>
+        <li>右下の <span class="badge">↓</span> ボタンをクリック</li>
+        <li>Googleドライブのページが開く</li>
+        <li>右上の <span class="badge">⋮</span> →「ダウンロード」をクリック</li>
+        <li><span class="badge">ダウンロード</span> フォルダに保存される</li>
+      </ol>
+    </div>
+
+    <div class="section">
+      <div class="section-title">全枚まとめてダウンロードする方法</div>
+      <ol>
+        <li>ページ上部（表紙）の <span class="highlight">「すべてダウンロード」</span> ボタンをクリック</li>
+        <li>Googleドライブのフォルダが開く</li>
+        <li>右上の <span class="badge">⋮</span> →「ダウンロード」をクリック</li>
+        <li>ZIPファイルが <span class="badge">ダウンロード</span> フォルダに保存される</li>
+        <li>ZIPをダブルクリックで解凍 → フォルダが作成される</li>
+      </ol>
+      <div class="tip">
+        Googleにログインしている場合は、ドライブ上で「整理」→「コピーを作成」でマイドライブに追加することもできます。
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Windows -->
+  <div class="tab-panel" id="tab-win">
+
+    <div class="dl-options">
+      <div class="dl-option">
+        <div class="dl-option-title">1枚だけ保存</div>
+        <p>写真をクリックして拡大 → 右下の<span class="highlight">↓ ボタン</span>をクリック</p>
+      </div>
+      <div class="dl-option">
+        <div class="dl-option-title">全枚まとめて保存</div>
+        <p>ページ上部の<span class="highlight">「すべてダウンロード」</span>ボタンをクリック</p>
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">1枚ずつ保存する方法</div>
+      <ol>
+        <li>ギャラリーの写真をクリックして大きく表示する</li>
+        <li>右下の <span class="badge">↓</span> ボタンをクリック</li>
+        <li>Googleドライブのページが開く</li>
+        <li>右上の <span class="badge">⋮</span> →「ダウンロード」をクリック</li>
+        <li><span class="badge">ダウンロード</span> フォルダに保存される</li>
+      </ol>
+    </div>
+
+    <div class="section">
+      <div class="section-title">全枚まとめてダウンロードする方法</div>
+      <ol>
+        <li>ページ上部（表紙）の <span class="highlight">「すべてダウンロード」</span> ボタンをクリック</li>
+        <li>Googleドライブのフォルダが開く</li>
+        <li>右上の <span class="badge">⋮</span> →「ダウンロード」をクリック</li>
+        <li>ZIPファイルが <span class="badge">ダウンロード</span> フォルダに保存される</li>
+        <li>ZIPを右クリック →「すべて展開」をクリックして解凍する</li>
+      </ol>
+      <div class="tip">
+        Googleにログインしている場合は、ドライブ上で「整理」→「コピーを作成」でマイドライブに追加することもできます。
+      </div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+function showTab(id) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-' + id).classList.add('active');
+  event.currentTarget.classList.add('active');
+}
+</script>
+
+</body>
+</html>
