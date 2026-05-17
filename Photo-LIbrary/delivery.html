@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Photo Delivery</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--white:#fff;--off:#f7f6f4;--bg:#f2f0ed;--border:#e0ddd8;--text:#1a1816;--muted:#9a9590;--accent:#2c6e49;--accent-h:#235a3c;--warn:#b45309;--error:#b91c1c;--shadow-sm:0 1px 4px rgba(0,0,0,0.07);--shadow-lg:0 12px 48px rgba(0,0,0,0.15);}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:'Jost',sans-serif;font-weight:300;min-height:100vh;}
+  .topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem;height:56px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:50;box-shadow:var(--shadow-sm);}
+  .logo{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:400;letter-spacing:0.04em;}
+  .logo em{font-style:italic;color:var(--accent);}
+  .expiry-pill{font-size:0.68rem;letter-spacing:0.06em;color:var(--muted);background:var(--off);border:1px solid var(--border);padding:0.22rem 0.7rem;border-radius:100px;display:none;}
+  .expiry-pill.warn{color:var(--warn);background:#fef3e2;border-color:#fcd88a;}
+  .expiry-pill.expired{color:var(--error);background:#fef2f2;border-color:#fca5a5;}
+
+  /* PASSWORD GATE */
+  .pw-gate{display:none;position:fixed;inset:0;z-index:100;background:rgba(242,240,237,0.97);backdrop-filter:blur(8px);align-items:center;justify-content:center;}
+  .pw-gate.open{display:flex;}
+  .pw-card{background:var(--white);border:1px solid var(--border);border-radius:10px;padding:2.5rem 2rem;width:100%;max-width:340px;box-shadow:var(--shadow-lg);text-align:center;}
+  .pw-icon{width:48px;height:48px;border-radius:50%;background:#eef4f0;border:1.5px solid #c2dece;display:flex;align-items:center;justify-content:center;font-size:1.3rem;margin:0 auto 1.1rem;}
+  .pw-title{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:400;margin-bottom:0.3rem;}
+  .pw-sub{font-size:0.75rem;color:var(--muted);margin-bottom:1.3rem;}
+  .pw-input{text-align:center;letter-spacing:0.12em;font-size:1rem;margin-bottom:0.75rem;width:100%;background:var(--off);border:1.5px solid var(--border);color:var(--text);font-family:'Jost',sans-serif;padding:0.65rem 0.9rem;border-radius:6px;outline:none;}
+  .pw-input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(44,110,73,0.1);}
+  .pw-btn{width:100%;background:var(--text);color:var(--white);border:none;font-family:'Jost',sans-serif;font-size:0.82rem;font-weight:500;padding:0.75rem;border-radius:6px;cursor:pointer;}
+  .pw-btn:hover{background:#333;}
+  .pw-error{font-size:0.72rem;color:var(--error);margin-top:0.5rem;min-height:1em;}
+
+  /* ALBUM META */
+  .album-meta{display:none;background:var(--white);border-bottom:1px solid var(--border);padding:0.9rem 1.5rem;align-items:center;justify-content:space-between;gap:0.75rem;flex-wrap:wrap;}
+  .album-name{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:400;}
+  .album-meta-right{display:flex;gap:0.6rem;align-items:center;flex-wrap:wrap;}
+  .meta-tag{font-size:0.68rem;letter-spacing:0.05em;color:var(--muted);background:var(--off);border:1px solid var(--border);padding:0.2rem 0.6rem;border-radius:100px;}
+  .dl-all-btn{background:var(--accent);color:#fff;border:none;font-family:'Jost',sans-serif;font-size:0.75rem;font-weight:500;letter-spacing:0.08em;padding:0.45rem 1.1rem;border-radius:4px;cursor:pointer;display:none;text-decoration:none;}
+  .dl-all-btn:hover{background:var(--accent-h);}
+
+  /* GALLERY */
+  .gallery-wrap{padding:1.5rem;}
+  .gallery{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;}
+  @media(max-width:1100px){.gallery{grid-template-columns:repeat(3,1fr);}}
+  @media(max-width:720px){.gallery{grid-template-columns:repeat(2,1fr);}}
+  @media(max-width:400px){.gallery{grid-template-columns:1fr;}}
+  .photo-card{border-radius:6px;overflow:hidden;position:relative;cursor:pointer;background:#e8e5e0;box-shadow:var(--shadow-sm);aspect-ratio:1/1;display:flex;align-items:center;justify-content:center;}
+  .photo-card img{width:100%;height:100%;object-fit:contain;display:block;transition:transform 0.5s ease;}
+  .photo-card:hover img{transform:scale(1.04);}
+  .photo-card-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(0,0,0,0.55) 0%,transparent 55%);opacity:0;transition:opacity 0.3s;display:flex;align-items:flex-end;padding:0.7rem;gap:0.35rem;}
+  .photo-card:hover .photo-card-overlay{opacity:1;}
+  .card-btn{background:rgba(255,255,255,0.92);border:none;color:var(--text);font-family:'Jost',sans-serif;font-size:0.65rem;font-weight:500;letter-spacing:0.07em;padding:0.28rem 0.6rem;border-radius:3px;cursor:pointer;}
+  .card-btn:hover{background:#fff;}
+  .card-num{position:absolute;top:0.5rem;left:0.55rem;font-family:'Playfair Display',serif;font-style:italic;font-size:0.85rem;color:rgba(255,255,255,0.9);text-shadow:0 1px 4px rgba(0,0,0,0.5);pointer-events:none;line-height:1;}
+
+  .loading{padding:5rem 2rem;text-align:center;color:var(--muted);font-size:0.82rem;letter-spacing:0.05em;}
+  .empty-state{padding:5rem 2rem;text-align:center;}
+  .empty-title{font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:400;margin-bottom:0.5rem;}
+  .empty-sub{font-size:0.78rem;color:var(--muted);line-height:1.8;}
+
+  /* SETUP WARNING */
+  .setup-warn{margin:2rem auto;max-width:560px;background:#fef3e2;border:1px solid #fcd88a;border-radius:8px;padding:1.25rem 1.5rem;font-size:0.82rem;line-height:1.8;color:#7c4a00;}
+  .setup-warn strong{display:block;font-size:0.9rem;margin-bottom:0.4rem;}
+  .setup-warn code{background:rgba(0,0,0,0.07);padding:0.1rem 0.35rem;border-radius:3px;font-family:monospace;font-size:0.85em;}
+
+  /* LIGHTBOX */
+  .lightbox{display:none;position:fixed;inset:0;z-index:200;background:rgba(26,24,22,0.96);flex-direction:column;align-items:center;justify-content:center;}
+  .lightbox.open{display:flex;}
+  .lb-img-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:1.2rem;width:100%;position:relative;}
+  .lightbox img{max-width:100%;max-height:calc(100vh - 110px);object-fit:contain;border-radius:3px;}
+  .lb-arrow{position:absolute;top:50%;transform:translateY(-50%);background:rgba(255,255,255,0.1);border:1px solid rgba(255,255,255,0.2);color:rgba(255,255,255,0.8);width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1rem;transition:background 0.2s;}
+  .lb-arrow:hover{background:rgba(255,255,255,0.2);}
+  .lb-arrow.left{left:1rem;}
+  .lb-arrow.right{right:1rem;}
+  .lb-bar{width:100%;background:rgba(26,24,22,0.9);border-top:1px solid rgba(255,255,255,0.08);padding:0.75rem 1.25rem;display:flex;align-items:center;gap:0.65rem;flex-shrink:0;}
+  .lb-filename{flex:1;font-size:0.72rem;color:rgba(255,255,255,0.45);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .lb-btn{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);color:rgba(255,255,255,0.75);font-family:'Jost',sans-serif;font-size:0.7rem;padding:0.38rem 0.8rem;border-radius:4px;cursor:pointer;}
+  .lb-btn:hover{background:rgba(255,255,255,0.15);}
+  .lb-dl-btn{background:var(--accent);border:none;color:#fff;font-family:'Jost',sans-serif;font-size:0.7rem;font-weight:500;padding:0.38rem 0.8rem;border-radius:4px;cursor:pointer;}
+  .lb-dl-btn:hover{background:var(--accent-h);}
+</style>
+</head>
+<body>
+
+<!-- =============================================
+  ★ ここにGoogle Drive APIキーを1回だけ入れてください
+  Google Cloud Console → Drive API有効化 → 認証情報 → APIキー作成
+================================================ -->
+<script>
+const API_KEY = 'AIzaSyB5icooN6gEMtDLpxMQH2-5JL0NcPvNdz8';
+</script>
+
+<div class="topbar">
+  <div class="logo">Photo <em>Delivery</em></div>
+  <div class="expiry-pill" id="expiryPill"></div>
+</div>
+
+<div class="pw-gate" id="pwGate">
+  <div class="pw-card">
+    <div class="pw-icon">🔑</div>
+    <div class="pw-title">合言葉を入力</div>
+    <div class="pw-sub">このアルバムは保護されています</div>
+    <input type="password" class="pw-input" id="pwGateInput" placeholder="合言葉" onkeydown="if(event.key==='Enter')checkPw()">
+    <button class="pw-btn" onclick="checkPw()">開く</button>
+    <div class="pw-error" id="pwError"></div>
+  </div>
+</div>
+
+<div class="album-meta" id="albumMeta">
+  <div class="album-name" id="albumName"></div>
+  <div class="album-meta-right">
+    <div class="meta-tag" id="metaDate" style="display:none"></div>
+    <div class="meta-tag" id="metaCount"></div>
+    <a class="dl-all-btn" id="dlAllBtn" href="#" target="_blank" rel="noopener">↓ 一括ダウンロード（ZIP）</a>
+  </div>
+</div>
+
+<div id="mainArea">
+  <div class="loading" id="loadingMsg">読み込み中…</div>
+</div>
+
+<div class="lightbox" id="lightbox">
+  <div class="lb-img-wrap">
+    <img id="lbImg" src="" alt="">
+    <button class="lb-arrow left" onclick="lbNav(-1)">&#8592;</button>
+    <button class="lb-arrow right" onclick="lbNav(1)">&#8594;</button>
+  </div>
+  <div class="lb-bar">
+    <div class="lb-filename" id="lbFilename"></div>
+    <button class="lb-dl-btn" onclick="lbDownload()">↓ DL</button>
+    <button class="lb-btn" onclick="closeLightbox()">✕ 閉じる</button>
+  </div>
+</div>
+
+<script>
+let photos = [], currentIdx = 0, config = {};
+
+function getConfig() {
+  const params = new URLSearchParams(window.location.search);
+  const d = params.get('d');
+  if (!d) return null;
+  try { return JSON.parse(decodeURIComponent(escape(atob(d)))); }
+  catch(e) { return null; }
+}
+
+function setExpiryPill(dateStr) {
+  const pill = document.getElementById('expiryPill');
+  if (!dateStr) return;
+  const exp = new Date(dateStr), today = new Date();
+  today.setHours(0,0,0,0);
+  const diff = Math.round((exp - today) / 86400000);
+  pill.textContent = '公開期限 ' + dateStr.replace(/-/g,'.');
+  pill.className = 'expiry-pill' + (diff < 0 ? ' expired' : diff <= 7 ? ' warn' : '');
+  pill.style.display = '';
+}
+
+function showSetupWarning() {
+  document.getElementById('loadingMsg').remove();
+  document.getElementById('mainArea').innerHTML =
+    '<div class="setup-warn">'
+    + '<strong>⚠️ APIキーが設定されていません</strong>'
+    + 'delivery.html をテキストエディタで開き、上部の<br>'
+    + '<code>const API_KEY = \'\';</code><br>'
+    + 'の <code>\'\'</code> の中にGoogle Drive APIキーを貼り付けて、Netlifyに再アップロードしてください。'
+    + '</div>';
+}
+
+async function loadFromDrive(folderId) {
+  const url = 'https://www.googleapis.com/drive/v3/files'
+    + '?q=' + encodeURIComponent("'" + folderId + "' in parents and mimeType contains 'image/'")
+    + '&fields=files(id,name,mimeType)'
+    + '&orderBy=name&pageSize=500&key=' + API_KEY;
+  const res = await fetch(url);
+  const data = await res.json();
+  if (data.error) throw new Error(data.error.message);
+  return data.files.map(f => ({
+    name: f.name,
+    thumb: 'https://drive.google.com/thumbnail?id=' + f.id + '&sz=w600',
+    full:  'https://drive.google.com/thumbnail?id=' + f.id + '&sz=w1600',
+    dl:    'https://drive.google.com/uc?id=' + f.id + '&export=download',
+  }));
+}
+
+function showError(msg) {
+  document.getElementById('mainArea').innerHTML =
+    '<div class="empty-state"><div class="empty-title">エラー</div>'
+    + '<div class="empty-sub">' + msg + '</div></div>';
+}
+
+function renderPhotos(list) {
+  photos = list;
+  document.getElementById('albumName').textContent = config.title || 'アルバム';
+  document.getElementById('metaCount').textContent = list.length + ' 枚';
+  const dateEl = document.getElementById('metaDate');
+  if (config.date) { dateEl.textContent = config.date; dateEl.style.display = ''; }
+  document.getElementById('albumMeta').style.display = 'flex';
+  const dlBtn = document.getElementById('dlAllBtn');
+  dlBtn.href = 'https://drive.google.com/drive/folders/' + config.folder;
+  dlBtn.style.display = 'inline-block';
+
+  const wrap = document.createElement('div');
+  wrap.className = 'gallery-wrap';
+  const gallery = document.createElement('div');
+  gallery.className = 'gallery';
+  list.forEach((p, i) => {
+    const card = document.createElement('div');
+    card.className = 'photo-card';
+    card.innerHTML = '<img src="' + p.thumb + '" alt="' + p.name + '" loading="lazy">'
+      + '<div class="card-num">' + (i + 1) + '</div>'
+      + '<div class="photo-card-overlay">'
+      + '<button class="card-btn" onclick="openLightbox(' + i + ');event.stopPropagation()">拡大</button>'
+      + '<button class="card-btn" onclick="dlOne(' + i + ');event.stopPropagation()">↓ DL</button>'
+      + '</div>';
+    card.addEventListener('click', () => openLightbox(i));
+    gallery.appendChild(card);
+  });
+  wrap.appendChild(gallery);
+  document.getElementById('mainArea').innerHTML = '';
+  document.getElementById('mainArea').appendChild(wrap);
+}
+
+function checkPw() {
+  if (document.getElementById('pwGateInput').value === config.pw) {
+    document.getElementById('pwGate').classList.remove('open');
+    startLoad();
+  } else {
+    document.getElementById('pwError').textContent = '合言葉が違います';
+    document.getElementById('pwGateInput').value = '';
+    document.getElementById('pwGateInput').focus();
+  }
+}
+
+async function startLoad() {
+  if (!API_KEY) { showSetupWarning(); return; }
+  const expired = config.expiry && new Date(config.expiry) < new Date(new Date().setHours(0,0,0,0));
+  if (expired) {
+    showError('このアルバムの公開期限が終了しました。');
+    return;
+  }
+  try {
+    const list = await loadFromDrive(config.folder);
+    if (list.length === 0) showError('フォルダに画像が見つかりませんでした。<br>フォルダが「リンクを知っている全員」に公開されているか確認してください。');
+    else renderPhotos(list);
+  } catch(e) {
+    showError('読み込みエラー: ' + e.message + '<br><br>・フォルダが「リンクを知っている全員」に公開されているか確認してください<br>・APIキーが正しいか確認してください');
+  }
+}
+
+window.addEventListener('load', async () => {
+  config = getConfig();
+  if (!config) {
+    showError('URLが正しくありません。管理画面から納品URLを生成してください。');
+    return;
+  }
+  setExpiryPill(config.expiry);
+  if (config.pw) {
+    document.getElementById('mainArea').innerHTML = '';
+    document.getElementById('pwGate').classList.add('open');
+    setTimeout(() => document.getElementById('pwGateInput').focus(), 100);
+  } else {
+    await startLoad();
+  }
+});
+
+function dlOne(i) {
+  const a = document.createElement('a');
+  a.href = photos[i].dl;
+  a.download = photos[i].name;
+  a.target = '_blank';
+  a.click();
+}
+function dlAll() { photos.forEach((_,i) => setTimeout(() => dlOne(i), i * 400)); }
+function openLightbox(i) { currentIdx = i; updateLightbox(); document.getElementById('lightbox').classList.add('open'); document.body.style.overflow = 'hidden'; }
+function updateLightbox() {
+  const p = photos[currentIdx];
+  document.getElementById('lbImg').src = p.full;
+  document.getElementById('lbFilename').textContent = (currentIdx+1) + ' / ' + photos.length + '　' + p.name;
+}
+function lbNav(dir) { currentIdx = (currentIdx + dir + photos.length) % photos.length; updateLightbox(); }
+function closeLightbox() { document.getElementById('lightbox').classList.remove('open'); document.body.style.overflow = ''; }
+function lbDownload() { dlOne(currentIdx); }
+document.addEventListener('keydown', e => {
+  if (document.getElementById('lightbox').classList.contains('open')) {
+    if (e.key === 'ArrowLeft') lbNav(-1);
+    if (e.key === 'ArrowRight') lbNav(1);
+    if (e.key === 'Escape') closeLightbox();
+  }
+});
+</script>
+</body>
+</html>
