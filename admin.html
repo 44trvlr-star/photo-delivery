@@ -180,8 +180,12 @@ window.addEventListener('load', () => {
     document.getElementById(id).addEventListener('input', refreshPreview);
   });
   document.getElementById('coverNum').addEventListener('input', () => {
-    lastPreviewFolderId = null;
-    refreshPreview();
+    const folderId = extractFolderId(document.getElementById('folderUrl').value.trim());
+    if (folderId) {
+      clearTimeout(folderDebounceTimer);
+      lastPreviewFolderId = null;
+      fetchPreviewPhoto(folderId);
+    }
   });
 });
 
