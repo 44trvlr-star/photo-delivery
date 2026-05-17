@@ -290,28 +290,12 @@ window.addEventListener('load', async () => {
   }
 });
 
-function isIOS() {
-  return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
-}
-
 function dlOne(i) {
-  if (isIOS()) {
-    document.getElementById('iosModalImg').src = photos[i].full;
-    document.getElementById('iosModal').classList.add('open');
-    document.body.style.overflow = 'hidden';
-  } else {
-    const a = document.createElement('a');
-    a.href = photos[i].dl;
-    a.download = photos[i].name;
-    a.target = '_blank';
-    a.click();
-  }
-}
-
-function closeIosModal() {
-  document.getElementById('iosModal').classList.remove('open');
-  document.getElementById('iosModalImg').src = '';
-  document.body.style.overflow = '';
+  const a = document.createElement('a');
+  a.href = photos[i].dl;
+  a.download = photos[i].name;
+  a.target = '_blank';
+  a.click();
 }
 function dlAll() { photos.forEach((_,i) => setTimeout(() => dlOne(i), i * 400)); }
 function openLightbox(i) { currentIdx = i; updateLightbox(); document.getElementById('lightbox').classList.add('open'); document.body.style.overflow = 'hidden'; }
