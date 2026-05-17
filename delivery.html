@@ -297,6 +297,7 @@ function renderPhotos(list) {
   if (config.date) document.getElementById('coverEyebrow').textContent = config.date;
   document.getElementById('coverDl').href = 'https://drive.google.com/drive/folders/' + config.folder;
   if (config.font) loadCoverFont(config.font);
+  if (config.titleSize) document.getElementById('coverTitle').style.fontSize = config.titleSize + 'rem';
   document.getElementById('cover').style.display = 'block';
   renderGallery(list);
 }

@@ -41,6 +41,22 @@
   .copy-btn{background:var(--accent);color:#fff;border:none;font-family:'Jost',sans-serif;font-size:0.75rem;font-weight:500;letter-spacing:0.08em;padding:0.5rem 1.1rem;border-radius:5px;cursor:pointer;transition:background 0.2s;}
   .copy-btn:hover{background:var(--accent-h);}
   .copy-done{font-size:0.72rem;color:var(--accent);display:none;}
+
+  /* SIZE BUTTONS */
+  .size-btns{display:flex;gap:0.4rem;}
+  .size-btn{flex:1;background:var(--off);border:1.5px solid var(--border);color:var(--muted);font-family:'Jost',sans-serif;font-size:0.72rem;font-weight:500;letter-spacing:0.05em;padding:0.5rem 0;border-radius:6px;cursor:pointer;transition:all 0.15s;text-align:center;}
+  .size-btn.active{background:var(--text);color:#fff;border-color:var(--text);}
+
+  /* PREVIEW */
+  .preview-section{display:none;margin-bottom:1.25rem;}
+  .preview-section-label{font-size:0.68rem;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--muted);margin-bottom:0.5rem;}
+  .preview-cover{position:relative;width:100%;height:240px;border-radius:8px;overflow:hidden;background:#d0ccc7;}
+  .preview-cover img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;}
+  .preview-grad{position:absolute;inset:0;background:rgba(0,0,0,0.5);}
+  .preview-content{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:1rem;color:#fff;}
+  .preview-placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.4);font-size:0.75rem;letter-spacing:0.05em;}
+  #prevTitle{font-family:'Raleway',sans-serif;font-size:1.8rem;font-weight:200;letter-spacing:0.22em;text-transform:uppercase;line-height:1.15;margin-bottom:0.5rem;transition:font-size 0.2s;}
+  #prevDate{font-size:0.6rem;font-weight:400;letter-spacing:0.2em;text-transform:uppercase;opacity:0.75;}
 </style>
 </head>
 <body>
@@ -94,6 +110,15 @@
       </div>
     </div>
     <div class="field">
+      <div class="field-label">タイトルサイズ</div>
+      <div class="size-btns">
+        <button class="size-btn" data-size="2.0" onclick="setSize(2.0)">S</button>
+        <button class="size-btn active" data-size="3.2" onclick="setSize(3.2)">M</button>
+        <button class="size-btn" data-size="4.2" onclick="setSize(4.2)">L</button>
+        <button class="size-btn" data-size="5.5" onclick="setSize(5.5)">XL</button>
+      </div>
+    </div>
+    <div class="field">
       <div class="field-label">背景色</div>
       <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
         <input type="color" id="bgColor" value="#ffffff" style="width:44px;height:36px;border:1.5px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;background:var(--off);">
@@ -104,6 +129,19 @@
           <button onclick="setBg('#1a1816')" style="width:26px;height:26px;border-radius:50%;background:#1a1816;border:1.5px solid #555;cursor:pointer;" title="ブラック"></button>
           <button onclick="setBg('#e8e4de')" style="width:26px;height:26px;border-radius:50%;background:#e8e4de;border:1.5px solid #ddd;cursor:pointer;" title="グレージュ"></button>
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="preview-section" id="previewSection">
+    <div class="preview-section-label">カバープレビュー</div>
+    <div class="preview-cover">
+      <img id="prevImg" src="" alt="" style="display:none;">
+      <div class="preview-grad"></div>
+      <div class="preview-placeholder" id="prevPlaceholder">フォルダURLを入力すると写真が表示されます</div>
+      <div class="preview-content">
+        <div id="prevTitle">アルバムタイトル</div>
+        <div id="prevDate"></div>
       </div>
     </div>
   </div>
@@ -122,14 +160,84 @@
 </div>
 
 <script>
+const API_KEY = 'AIzaSyB5icooN6gEMtDLpxMQH2-5JL0NcPvNdz8';
+
+let currentTitleSize = 3.2;
+let lastPreviewFolderId = null;
+let folderDebounceTimer;
+const loadedFonts = new Set(['raleway']);
+const FONT_INFO = {
+  'raleway':    { family:"'Raleway',sans-serif",    weight:'200', url: null },
+  'noto-serif': { family:"'Noto Serif JP',serif",   weight:'300', url:'https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@200;300&display=swap' },
+  'noto-sans':  { family:"'Noto Sans JP',sans-serif",weight:'200', url:'https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100;200&display=swap' },
+};
+
 window.addEventListener('load', () => {
   const def = new Date();
   def.setDate(def.getDate() + 30);
   document.getElementById('expiryDate').value = def.toISOString().split('T')[0];
+  ['albumLabel','shootDate','fontSelect','folderUrl','coverNum'].forEach(id => {
+    document.getElementById(id).addEventListener('input', refreshPreview);
+  });
 });
 
-function setBg(color) {
-  document.getElementById('bgColor').value = color;
+function setBg(color) { document.getElementById('bgColor').value = color; }
+
+function setSize(rem) {
+  currentTitleSize = rem;
+  document.querySelectorAll('.size-btn').forEach(b => b.classList.toggle('active', parseFloat(b.dataset.size) === rem));
+  refreshPreview();
+}
+
+function refreshPreview() {
+  document.getElementById('previewSection').style.display = 'block';
+
+  const title = document.getElementById('albumLabel').value.trim() || 'アルバムタイトル';
+  const date  = document.getElementById('shootDate').value.trim();
+  const fontKey = document.getElementById('fontSelect').value;
+  const f = FONT_INFO[fontKey];
+
+  if (f.url && !loadedFonts.has(fontKey)) {
+    const link = document.createElement('link');
+    link.rel = 'stylesheet'; link.href = f.url;
+    document.head.appendChild(link);
+    loadedFonts.add(fontKey);
+  }
+
+  const titleEl = document.getElementById('prevTitle');
+  titleEl.textContent = title;
+  titleEl.style.fontFamily = f.family;
+  titleEl.style.fontWeight = f.weight;
+  titleEl.style.fontSize   = currentTitleSize * 0.5 + 'rem'; // scaled for preview
+
+  document.getElementById('prevDate').textContent = date;
+
+  const folderId = extractFolderId(document.getElementById('folderUrl').value.trim());
+  if (folderId && folderId !== lastPreviewFolderId) {
+    clearTimeout(folderDebounceTimer);
+    folderDebounceTimer = setTimeout(() => fetchPreviewPhoto(folderId), 700);
+  }
+}
+
+async function fetchPreviewPhoto(folderId) {
+  lastPreviewFolderId = folderId;
+  try {
+    const coverNum = Math.max(parseInt(document.getElementById('coverNum').value.trim()) || 1, 1);
+    const url = 'https://www.googleapis.com/drive/v3/files'
+      + '?q=' + encodeURIComponent("'" + folderId + "' in parents and mimeType contains 'image/'")
+      + '&fields=files(id)&orderBy=name&pageSize=' + coverNum + '&key=' + API_KEY;
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.files && data.files.length > 0) {
+      const idx = Math.min(coverNum - 1, data.files.length - 1);
+      const img = document.getElementById('prevImg');
+      img.onload = () => {
+        img.style.display = 'block';
+        document.getElementById('prevPlaceholder').style.display = 'none';
+      };
+      img.src = 'https://drive.google.com/thumbnail?id=' + data.files[idx].id + '&sz=w800';
+    }
+  } catch(e) {}
 }
 
 function extractFolderId(url) {
@@ -148,26 +256,21 @@ function generateUrl() {
   document.getElementById('resultCard').style.display = 'none';
 
   const folderUrl = document.getElementById('folderUrl').value.trim();
-  if (!folderUrl) {
-    showError('Google DriveのフォルダURLを入力してください');
-    return;
-  }
+  if (!folderUrl) { showError('Google DriveのフォルダURLを入力してください'); return; }
   const folderId = extractFolderId(folderUrl);
-  if (!folderId) {
-    showError('正しいGoogle DriveフォルダURLを入力してください（例: https://drive.google.com/drive/folders/XXXX）');
-    return;
-  }
+  if (!folderId) { showError('正しいGoogle DriveフォルダURLを入力してください'); return; }
 
   const coverNum = parseInt(document.getElementById('coverNum').value.trim(), 10);
   const params = {
-    folder: folderId,
-    title: document.getElementById('albumLabel').value.trim(),
-    date: document.getElementById('shootDate').value.trim(),
-    expiry: document.getElementById('expiryDate').value,
-    pw: document.getElementById('pwInput').value,
-    bg: document.getElementById('bgColor').value,
-    cover: (coverNum >= 1) ? coverNum - 1 : 0,
-    font: document.getElementById('fontSelect').value,
+    folder:     folderId,
+    title:      document.getElementById('albumLabel').value.trim(),
+    date:       document.getElementById('shootDate').value.trim(),
+    expiry:     document.getElementById('expiryDate').value,
+    pw:         document.getElementById('pwInput').value,
+    bg:         document.getElementById('bgColor').value,
+    cover:      (coverNum >= 1) ? coverNum - 1 : 0,
+    font:       document.getElementById('fontSelect').value,
+    titleSize:  currentTitleSize,
   };
 
   const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(params))));
@@ -186,7 +289,6 @@ function copyUrl() {
     el.style.display = 'inline';
     setTimeout(() => el.style.display = 'none', 2000);
   }).catch(() => {
-    document.getElementById('resultUrl').select?.();
     alert('コピーできませんでした。URLを手動でコピーしてください。');
   });
 }
