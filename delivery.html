@@ -263,7 +263,11 @@ function renderGallery(list) {
 let resizeTimer;
 window.addEventListener('resize', () => {
   clearTimeout(resizeTimer);
-  resizeTimer = setTimeout(() => { if (photos.length) renderGallery(photos); }, 200);
+  resizeTimer = setTimeout(() => {
+    if (!photos.length) return;
+    const gallery = document.querySelector('.gallery');
+    if (gallery && getColCount() !== gallery.children.length) renderGallery(photos);
+  }, 200);
 });
 
 function renderPhotos(list) {
