@@ -157,6 +157,22 @@ const API_KEY = 'AIzaSyB5icooN6gEMtDLpxMQH2-5JL0NcPvNdz8';
 <script>
 let photos = [], currentIdx = 0, config = {};
 
+const FONTS = {
+  'noto-serif': { url: 'https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@200;300;400&display=swap', family: "'Noto Serif JP', serif", weight: '300' },
+  'noto-sans':  { url: 'https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100;200;300&display=swap', family: "'Noto Sans JP', sans-serif", weight: '200' },
+};
+
+function loadCoverFont(key) {
+  const f = FONTS[key];
+  if (!f) return;
+  const link = document.createElement('link');
+  link.rel = 'stylesheet';
+  link.href = f.url;
+  document.head.appendChild(link);
+  document.getElementById('coverTitle').style.fontFamily = f.family;
+  document.getElementById('coverTitle').style.fontWeight = f.weight;
+}
+
 function getConfig() {
   const params = new URLSearchParams(window.location.search);
   const d = params.get('d');
@@ -280,6 +296,7 @@ function renderPhotos(list) {
   if (config.title) document.getElementById('coverTitle').textContent = config.title;
   if (config.date) document.getElementById('coverEyebrow').textContent = config.date;
   document.getElementById('coverDl').href = 'https://drive.google.com/drive/folders/' + config.folder;
+  if (config.font) loadCoverFont(config.font);
   document.getElementById('cover').style.display = 'block';
   renderGallery(list);
 }

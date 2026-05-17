@@ -84,6 +84,14 @@
         <div class="field-label">カバー写真の番号（任意）</div>
         <input type="text" id="coverNum" placeholder="例: 3（空欄なら1枚目）">
       </div>
+      <div class="field">
+        <div class="field-label">タイトルフォント</div>
+        <select id="fontSelect" style="width:100%;background:var(--off);border:1.5px solid var(--border);color:var(--text);font-family:'Jost',sans-serif;font-size:0.84rem;font-weight:300;padding:0.65rem 0.9rem;border-radius:6px;outline:none;">
+          <option value="raleway">Raleway（英語・デフォルト）</option>
+          <option value="noto-serif">Noto Serif JP（明朝体）</option>
+          <option value="noto-sans">Noto Sans JP（細ゴシック）</option>
+        </select>
+      </div>
     </div>
     <div class="field">
       <div class="field-label">背景色</div>
@@ -159,6 +167,7 @@ function generateUrl() {
     pw: document.getElementById('pwInput').value,
     bg: document.getElementById('bgColor').value,
     cover: (coverNum >= 1) ? coverNum - 1 : 0,
+    font: document.getElementById('fontSelect').value,
   };
 
   const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(params))));
