@@ -41,6 +41,11 @@
   .copy-btn{background:var(--accent);color:#fff;border:none;font-family:'Jost',sans-serif;font-size:0.75rem;font-weight:500;letter-spacing:0.08em;padding:0.5rem 1.1rem;border-radius:5px;cursor:pointer;transition:background 0.2s;}
   .copy-btn:hover{background:var(--accent-h);}
   .copy-done{font-size:0.72rem;color:var(--accent);display:none;}
+  .shorten-btn{background:var(--off);color:var(--text);border:1.5px solid var(--border);font-family:'Jost',sans-serif;font-size:0.75rem;font-weight:500;letter-spacing:0.08em;padding:0.5rem 1.1rem;border-radius:5px;cursor:pointer;transition:all 0.2s;}
+  .shorten-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .shorten-btn:disabled{opacity:0.5;cursor:default;}
+  .short-url-row{margin-top:0.75rem;display:none;}
+  .short-url-box{background:var(--off);border:1.5px solid var(--accent);border-radius:6px;padding:0.6rem 0.9rem;font-size:0.82rem;word-break:break-all;color:var(--text);margin-bottom:0.5rem;}
 
   /* SIZE BUTTONS */
   .size-btns{display:flex;gap:0.4rem;}
@@ -154,7 +159,16 @@
     <div class="url-box" id="resultUrl"></div>
     <div class="row">
       <button class="copy-btn" onclick="copyUrl()">URLをコピー</button>
+      <button class="shorten-btn" id="shortenBtn" onclick="shortenUrl()">短縮URLを作成</button>
       <span class="copy-done" id="copyDone">✓ コピーしました</span>
+    </div>
+    <div class="short-url-row" id="shortUrlRow">
+      <div class="result-label" style="margin-top:0.75rem;">短縮URL</div>
+      <div class="short-url-box" id="shortUrlBox"></div>
+      <div class="row">
+        <button class="copy-btn" onclick="copyShortUrl()">短縮URLをコピー</button>
+        <span class="copy-done" id="copyShortDone">✓ コピーしました</span>
+      </div>
     </div>
   </div>
 </div>
@@ -302,6 +316,37 @@ function copyUrl() {
   const url = document.getElementById('resultUrl').textContent;
   navigator.clipboard.writeText(url).then(() => {
     const el = document.getElementById('copyDone');
+    el.style.display = 'inline';
+    setTimeout(() => el.style.display = 'none', 2000);
+  }).catch(() => {
+    alert('コピーできませんでした。URLを手動でコピーしてください。');
+  });
+}
+
+async function shortenUrl() {
+  const url = document.getElementById('resultUrl').textContent.trim();
+  if (!url) return;
+  const btn = document.getElementById('shortenBtn');
+  btn.disabled = true;
+  btn.textContent = '作成中…';
+  try {
+    const res = await fetch('https://is.gd/create.php?format=simple&url=' + encodeURIComponent(url));
+    const short = await res.text();
+    if (!short.startsWith('http')) throw new Error('short url error');
+    document.getElementById('shortUrlBox').textContent = short;
+    document.getElementById('shortUrlRow').style.display = 'block';
+    btn.textContent = '再作成';
+  } catch(e) {
+    alert('短縮URLの作成に失敗しました。時間をおいてもう一度お試しください。');
+    btn.textContent = '短縮URLを作成';
+  }
+  btn.disabled = false;
+}
+
+function copyShortUrl() {
+  const url = document.getElementById('shortUrlBox').textContent;
+  navigator.clipboard.writeText(url).then(() => {
+    const el = document.getElementById('copyShortDone');
     el.style.display = 'inline';
     setTimeout(() => el.style.display = 'none', 2000);
   }).catch(() => {
