@@ -44,11 +44,10 @@
 
   /* GALLERY */
   .gallery-wrap{padding:1.5rem 1.5rem 3rem;}
-  .gallery{columns:4;column-gap:3px;}
-  @media(max-width:1100px){.gallery{columns:3;}}
-  @media(max-width:720px){.gallery{columns:2;}.gallery-wrap{padding:0.75rem 0 2rem;}.album-meta{padding:1.25rem 1rem 0;}}
-  @media(max-width:400px){.gallery{columns:1;}}
-  .photo-card{overflow:hidden;position:relative;cursor:pointer;background:#fff;break-inside:avoid;margin-bottom:3px;}
+  @media(max-width:720px){.gallery-wrap{padding:0.75rem 0 2rem;}.album-meta{padding:1.25rem 1rem 0;}}
+  .gallery{display:flex;gap:3px;align-items:flex-start;}
+  .gallery-col{flex:1;display:flex;flex-direction:column;gap:3px;}
+  .photo-card{overflow:hidden;position:relative;cursor:pointer;background:#fff;}
   .photo-card img{width:100%;height:auto;display:block;transition:opacity 0.3s;}
   .photo-card:hover img{opacity:0.85;}
   .photo-card-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:0.5rem;opacity:0;transition:opacity 0.25s;}
@@ -237,12 +236,29 @@ function sortPhotos(type) {
   renderGallery(sorted);
 }
 
+function getColCount() {
+  const w = window.innerWidth;
+  if (w > 1100) return 4;
+  if (w > 720) return 3;
+  if (w > 400) return 2;
+  return 1;
+}
+
 function renderGallery(list) {
   photos = list;
   const wrap = document.createElement('div');
   wrap.className = 'gallery-wrap';
   const gallery = document.createElement('div');
   gallery.className = 'gallery';
+
+  const n = getColCount();
+  const cols = Array.from({length: n}, () => {
+    const c = document.createElement('div');
+    c.className = 'gallery-col';
+    gallery.appendChild(c);
+    return c;
+  });
+
   list.forEach((p, i) => {
     const card = document.createElement('div');
     card.className = 'photo-card';
@@ -252,12 +268,19 @@ function renderGallery(list) {
       + '<button class="card-btn" onclick="dlOne(' + i + ');event.stopPropagation()">↓ DL</button>'
       + '</div>';
     card.addEventListener('click', () => openLightbox(i));
-    gallery.appendChild(card);
+    cols[i % n].appendChild(card);
   });
+
   wrap.appendChild(gallery);
   document.getElementById('mainArea').innerHTML = '';
   document.getElementById('mainArea').appendChild(wrap);
 }
+
+let resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => { if (photos.length) renderGallery(photos); }, 200);
+});
 
 function renderPhotos(list) {
   allPhotos = list;
