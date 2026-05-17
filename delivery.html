@@ -77,6 +77,14 @@
   .lb-btn:hover{background:rgba(255,255,255,0.15);}
   .lb-dl-btn{background:var(--accent);border:none;color:#fff;font-family:'Jost',sans-serif;font-size:0.7rem;font-weight:500;padding:0.38rem 0.8rem;border-radius:4px;cursor:pointer;}
   .lb-dl-btn:hover{background:var(--accent-h);}
+
+  /* iOS SAVE MODAL */
+  .ios-modal{display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,0.92);flex-direction:column;align-items:center;justify-content:center;padding:1.5rem;}
+  .ios-modal.open{display:flex;}
+  .ios-modal-img{max-width:100%;max-height:65vh;object-fit:contain;border-radius:4px;}
+  .ios-modal-guide{margin-top:1.25rem;background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.15);border-radius:10px;padding:1rem 1.25rem;text-align:center;color:#fff;font-size:0.82rem;line-height:1.8;max-width:320px;}
+  .ios-modal-guide strong{display:block;font-size:0.95rem;font-weight:500;margin-bottom:0.3rem;}
+  .ios-modal-close{margin-top:1rem;background:transparent;border:1px solid rgba(255,255,255,0.3);color:rgba(255,255,255,0.7);font-family:'Jost',sans-serif;font-size:0.75rem;padding:0.5rem 1.5rem;border-radius:4px;cursor:pointer;}
 </style>
 </head>
 <body>
@@ -116,6 +124,15 @@ const API_KEY = 'AIzaSyB5icooN6gEMtDLpxMQH2-5JL0NcPvNdz8';
 
 <div id="mainArea">
   <div class="loading" id="loadingMsg">読み込み中…</div>
+</div>
+
+<div class="ios-modal" id="iosModal">
+  <img class="ios-modal-img" id="iosModalImg" src="" alt="">
+  <div class="ios-modal-guide">
+    <strong>写真を保存する</strong>
+    上の画像を<strong>長押し</strong>して<br>「写真に追加」を選んでください
+  </div>
+  <button class="ios-modal-close" onclick="closeIosModal()">閉じる</button>
 </div>
 
 <div class="lightbox" id="lightbox">
@@ -273,12 +290,28 @@ window.addEventListener('load', async () => {
   }
 });
 
+function isIOS() {
+  return /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+}
+
 function dlOne(i) {
-  const a = document.createElement('a');
-  a.href = photos[i].dl;
-  a.download = photos[i].name;
-  a.target = '_blank';
-  a.click();
+  if (isIOS()) {
+    document.getElementById('iosModalImg').src = photos[i].full;
+    document.getElementById('iosModal').classList.add('open');
+    document.body.style.overflow = 'hidden';
+  } else {
+    const a = document.createElement('a');
+    a.href = photos[i].dl;
+    a.download = photos[i].name;
+    a.target = '_blank';
+    a.click();
+  }
+}
+
+function closeIosModal() {
+  document.getElementById('iosModal').classList.remove('open');
+  document.getElementById('iosModalImg').src = '';
+  document.body.style.overflow = '';
 }
 function dlAll() { photos.forEach((_,i) => setTimeout(() => dlOne(i), i * 400)); }
 function openLightbox(i) { currentIdx = i; updateLightbox(); document.getElementById('lightbox').classList.add('open'); document.body.style.overflow = 'hidden'; }
