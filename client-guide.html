@@ -120,19 +120,21 @@
   }
   ol li {
     counter-increment: steps;
-    display: flex;
-    gap: 1rem;
-    align-items: flex-start;
+    position: relative;
+    padding: 0.4rem 0 0.4rem 2.4rem;
     font-size: 0.88rem;
     color: #333;
-    padding: 0.45rem 0;
+    line-height: 1.7;
   }
   ol li::before {
     content: counter(steps);
+    position: absolute;
+    left: 0;
+    top: 0.5rem;
     display: flex;
     align-items: center;
     justify-content: center;
-    min-width: 1.5rem;
+    width: 1.5rem;
     height: 1.5rem;
     border-radius: 50%;
     background: #111;
@@ -140,8 +142,6 @@
     font-family: 'Raleway', sans-serif;
     font-size: 0.72rem;
     font-weight: 400;
-    margin-top: 0.1rem;
-    flex-shrink: 0;
   }
 
   .tip {
@@ -258,16 +258,31 @@
     </div>
 
     <div class="section">
-      <div class="section-title">全枚まとめてダウンロードする方法</div>
+      <div class="section-title">全枚まとめてダウンロードする方法 — Googleドライブアプリ（推奨）</div>
       <ol>
         <li>ページ上部（表紙）の <span class="highlight">「すべてダウンロード」</span> ボタンをタップ</li>
-        <li>Googleドライブのフォルダが開く</li>
-        <li>右上の <span class="badge">⋮</span> をタップ →「ダウンロード」を選択</li>
-        <li>ZIPファイルがダウンロードされる（ファイルアプリに保存される）</li>
-        <li><span class="highlight">ファイルアプリ</span>を開き、ZIPをタップして解凍 → 写真が展開される</li>
+        <li>Googleドライブアプリでフォルダが開く</li>
+        <li>フォルダ名の右にある <span class="badge">⋮</span> をタップ</li>
+        <li><span class="highlight">「ダウンロード」</span> を選択 → ZIPが <span class="badge">ファイル</span> アプリの「ダウンロード」に保存される</li>
+        <li><span class="badge">ファイル</span> アプリを開き、ZIPをタップして解凍する</li>
+        <li>解凍されたフォルダの中の写真を長押し →<span class="highlight">「写真に保存」</span> でカメラロールへ</li>
       </ol>
       <div class="tip">
-        <strong>注意：</strong>ZIPファイルはカメラロールには直接保存されません。ファイルアプリで解凍後、写真を長押し →「写真に保存」でカメラロールへ移動できます。
+        <strong>まとめて写真に保存したい場合：</strong>解凍後のフォルダを開き、右上の <span class="badge">選択</span> → 全選択 → 共有 →「写真に保存」で一括でカメラロールへ移動できます。
+      </div>
+    </div>
+
+    <div class="section">
+      <div class="section-title">全枚まとめてダウンロードする方法 — ブラウザのみ（アプリなし）</div>
+      <ol>
+        <li>ページ上部（表紙）の <span class="highlight">「すべてダウンロード」</span> ボタンをタップ</li>
+        <li>Googleドライブのページがブラウザで開く（ログインを求められた場合はログインする）</li>
+        <li>右上の <span class="badge">⋮</span> をタップ →「ダウンロード」を選択</li>
+        <li>ZIPファイルが <span class="badge">ファイル</span> アプリの「ダウンロード」に保存される</li>
+        <li><span class="badge">ファイル</span> アプリでZIPをタップして解凍 → 写真が取り出せる</li>
+      </ol>
+      <div class="tip">
+        <strong>注意：</strong>ZIPはカメラロールに直接は入りません。解凍後、写真を長押し →「写真に保存」でカメラロールへ移動できます。枚数が多い場合は「選択」→全選択→共有→「写真に保存」が便利です。
       </div>
     </div>
 
@@ -302,16 +317,27 @@
     </div>
 
     <div class="section">
-      <div class="section-title">全枚まとめてダウンロードする方法</div>
+      <div class="section-title">全枚まとめてダウンロードする方法 — Googleドライブアプリ（推奨）</div>
       <ol>
         <li>ページ上部（表紙）の <span class="highlight">「すべてダウンロード」</span> ボタンをタップ</li>
-        <li>Googleドライブのフォルダが開く</li>
+        <li>Googleドライブアプリでフォルダが開く</li>
+        <li>フォルダ名を<span class="highlight">長押し</span> → <span class="highlight">「ダウンロード」</span> を選択</li>
+        <li>ZIPファイルが本体の <span class="badge">ダウンロード</span> フォルダに保存される</li>
+        <li>ファイルマネージャーアプリでZIPを開いて解凍 → 写真を取り出す</li>
+      </ol>
+    </div>
+
+    <div class="section">
+      <div class="section-title">全枚まとめてダウンロードする方法 — ブラウザのみ（アプリなし）</div>
+      <ol>
+        <li>ページ上部（表紙）の <span class="highlight">「すべてダウンロード」</span> ボタンをタップ</li>
+        <li>Googleドライブのページがブラウザで開く（ログインを求められた場合はログインする）</li>
         <li>右上の <span class="badge">⋮</span> をタップ → <span class="highlight">「ダウンロード」</span> を選択</li>
         <li>ZIPファイルが <span class="badge">ダウンロード</span> フォルダに保存される</li>
-        <li>ファイルマネージャーアプリでZIPを開いて解凍する</li>
+        <li>ファイルマネージャーアプリでZIPを解凍 → 写真が取り出せる</li>
       </ol>
       <div class="tip">
-        Googleドライブアプリを使う場合は、フォルダを長押し → 「ダウンロード」でZIPをまとめて取得できます。
+        端末の機種によってファイルマネージャーアプリの名前が異なります（「ファイル」「Files」「マイファイル」など）。ZIPファイルをタップすると自動で解凍されることがほとんどです。
       </div>
     </div>
 
@@ -346,13 +372,14 @@
       <div class="section-title">全枚まとめてダウンロードする方法</div>
       <ol>
         <li>ページ上部（表紙）の <span class="highlight">「すべてダウンロード」</span> ボタンをクリック</li>
-        <li>Googleドライブのフォルダが開く</li>
-        <li>右上の <span class="badge">⋮</span> →「ダウンロード」をクリック</li>
-        <li>ZIPファイルが <span class="badge">ダウンロード</span> フォルダに保存される</li>
-        <li>ZIPをダブルクリックで解凍 → フォルダが作成される</li>
+        <li>Googleドライブのフォルダがブラウザで開く（Googleアカウントへのログインが必要）</li>
+        <li>右上の <span class="badge">⋮</span>（その他のオプション）→ <span class="highlight">「ダウンロード」</span> をクリック</li>
+        <li>ZIPファイルが <span class="badge">ダウンロード</span> フォルダに自動保存される</li>
+        <li>ZIPファイルをダブルクリック → 自動で解凍されてフォルダが作成される</li>
+        <li>フォルダの中に全写真が入っている</li>
       </ol>
       <div class="tip">
-        Googleにログインしている場合は、ドライブ上で「整理」→「コピーを作成」でマイドライブに追加することもできます。
+        <strong>Googleアカウントにログインしていない場合：</strong>「ダウンロード」ボタンが表示されないことがあります。その場合はGoogleアカウントでログインしてからもう一度お試しください。
       </div>
     </div>
 
@@ -387,13 +414,14 @@
       <div class="section-title">全枚まとめてダウンロードする方法</div>
       <ol>
         <li>ページ上部（表紙）の <span class="highlight">「すべてダウンロード」</span> ボタンをクリック</li>
-        <li>Googleドライブのフォルダが開く</li>
-        <li>右上の <span class="badge">⋮</span> →「ダウンロード」をクリック</li>
-        <li>ZIPファイルが <span class="badge">ダウンロード</span> フォルダに保存される</li>
-        <li>ZIPを右クリック →「すべて展開」をクリックして解凍する</li>
+        <li>Googleドライブのフォルダがブラウザで開く（Googleアカウントへのログインが必要）</li>
+        <li>右上の <span class="badge">⋮</span>（その他のオプション）→ <span class="highlight">「ダウンロード」</span> をクリック</li>
+        <li>ZIPファイルが <span class="badge">ダウンロード</span> フォルダに自動保存される</li>
+        <li>ZIPファイルを<span class="highlight">右クリック</span> →<span class="highlight">「すべて展開」</span>をクリック</li>
+        <li>保存先を選んで「展開」→ フォルダの中に全写真が入っている</li>
       </ol>
       <div class="tip">
-        Googleにログインしている場合は、ドライブ上で「整理」→「コピーを作成」でマイドライブに追加することもできます。
+        <strong>Googleアカウントにログインしていない場合：</strong>「ダウンロード」ボタンが表示されないことがあります。その場合はGoogleアカウントでログインしてからもう一度お試しください。
       </div>
     </div>
 
