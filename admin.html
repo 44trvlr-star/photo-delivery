@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Photo Delivery — 管理</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --white:#fff;--off:#f7f6f4;--bg:#f2f0ed;--border:#e0ddd8;
+    --text:#1a1816;--muted:#9a9590;--accent:#2c6e49;--accent-h:#235a3c;
+    --error:#b91c1c;
+    --shadow-sm:0 1px 4px rgba(0,0,0,0.07);--shadow-lg:0 12px 48px rgba(0,0,0,0.15);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--text);font-family:'Jost',sans-serif;font-weight:300;min-height:100vh;}
+  .topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem;height:56px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--shadow-sm);}
+  .logo{font-family:'Playfair Display',serif;font-size:1.2rem;font-weight:400;letter-spacing:0.04em;}
+  .logo em{font-style:italic;color:var(--accent);}
+  .badge{font-size:0.65rem;font-weight:500;letter-spacing:0.08em;background:#fef3e2;color:#b45309;border:1px solid #fcd88a;padding:0.2rem 0.6rem;border-radius:100px;}
+  .wrap{max-width:640px;margin:0 auto;padding:2.5rem 1.5rem;}
+  h2{font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:400;margin-bottom:0.35rem;}
+  .sub{font-size:0.78rem;color:var(--muted);margin-bottom:2rem;line-height:1.6;}
+  .card{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:1.5rem;margin-bottom:1.25rem;box-shadow:var(--shadow-sm);}
+  .card-title{font-size:0.72rem;font-weight:500;letter-spacing:0.09em;text-transform:uppercase;color:var(--muted);margin-bottom:1rem;}
+  .field{margin-bottom:0.85rem;}
+  .field:last-child{margin-bottom:0;}
+  .field-label{font-size:0.68rem;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--muted);margin-bottom:0.3rem;}
+  input[type=text],input[type=password],input[type=date]{width:100%;background:var(--off);border:1.5px solid var(--border);color:var(--text);font-family:'Jost',sans-serif;font-size:0.84rem;font-weight:300;padding:0.65rem 0.9rem;border-radius:6px;outline:none;transition:border-color 0.2s,box-shadow 0.2s;}
+  input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(44,110,73,0.1);background:var(--white);}
+  input::placeholder{color:var(--muted);}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:0.75rem;}
+  @media(max-width:480px){.grid2{grid-template-columns:1fr;}}
+  .inline-error{font-size:0.75rem;color:var(--error);background:#fef2f2;border:1px solid #fca5a5;border-radius:6px;padding:0.6rem 0.9rem;margin-bottom:1rem;display:none;}
+  .btn-primary{background:var(--text);color:var(--white);border:none;font-family:'Jost',sans-serif;font-size:0.82rem;font-weight:500;letter-spacing:0.08em;padding:0.8rem 1.5rem;border-radius:6px;cursor:pointer;transition:background 0.2s;width:100%;}
+  .btn-primary:hover{background:#333;}
+  .result-card{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:1.5rem;margin-top:1.25rem;box-shadow:var(--shadow-sm);display:none;}
+  .result-label{font-size:0.68rem;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--muted);margin-bottom:0.5rem;}
+  .url-box{background:var(--off);border:1.5px solid var(--border);border-radius:6px;padding:0.7rem 0.9rem;font-size:0.74rem;word-break:break-all;color:var(--text);letter-spacing:0.02em;margin-bottom:0.75rem;line-height:1.6;}
+  .row{display:flex;align-items:center;gap:0.5rem;flex-wrap:wrap;}
+  .copy-btn{background:var(--accent);color:#fff;border:none;font-family:'Jost',sans-serif;font-size:0.75rem;font-weight:500;letter-spacing:0.08em;padding:0.5rem 1.1rem;border-radius:5px;cursor:pointer;transition:background 0.2s;}
+  .copy-btn:hover{background:var(--accent-h);}
+  .copy-done{font-size:0.72rem;color:var(--accent);display:none;}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="logo">Photo <em>Delivery</em></div>
+  <div class="badge">管理画面</div>
+</div>
+
+<div class="wrap">
+  <h2>納品URLを作成</h2>
+  <div class="sub">Google Driveのフォルダ情報を入力すると、クライアントに渡すURLが生成されます。APIキー不要。</div>
+
+  <div class="card">
+    <div class="card-title">アルバム情報</div>
+    <div class="field">
+      <div class="field-label">Google Drive フォルダURL</div>
+      <input type="text" id="folderUrl" placeholder="https://drive.google.com/drive/folders/...">
+    </div>
+    <div class="grid2">
+      <div class="field">
+        <div class="field-label">案件名</div>
+        <input type="text" id="albumLabel" placeholder="例: 2026.05.16 陸上競技大会">
+      </div>
+      <div class="field">
+        <div class="field-label">撮影日</div>
+        <input type="text" id="shootDate" placeholder="例: 2026年5月16日">
+      </div>
+    </div>
+    <div class="grid2">
+      <div class="field">
+        <div class="field-label">公開期限</div>
+        <input type="date" id="expiryDate">
+      </div>
+      <div class="field">
+        <div class="field-label">合言葉（任意）</div>
+        <input type="password" id="pwInput" placeholder="設定しない場合は空欄">
+      </div>
+    </div>
+  </div>
+
+  <div class="inline-error" id="genError"></div>
+  <button class="btn-primary" onclick="generateUrl()">納品URLを生成する</button>
+
+  <div class="result-card" id="resultCard">
+    <div class="result-label">クライアントに渡すURL</div>
+    <div class="url-box" id="resultUrl"></div>
+    <div class="row">
+      <button class="copy-btn" onclick="copyUrl()">URLをコピー</button>
+      <span class="copy-done" id="copyDone">✓ コピーしました</span>
+    </div>
+  </div>
+</div>
+
+<script>
+window.addEventListener('load', () => {
+  const def = new Date();
+  def.setDate(def.getDate() + 30);
+  document.getElementById('expiryDate').value = def.toISOString().split('T')[0];
+});
+
+function extractFolderId(url) {
+  const m = url.match(/folders\/([a-zA-Z0-9_-]+)/);
+  return m ? m[1] : null;
+}
+
+function showError(msg) {
+  const el = document.getElementById('genError');
+  el.textContent = msg;
+  el.style.display = 'block';
+}
+
+function generateUrl() {
+  document.getElementById('genError').style.display = 'none';
+  document.getElementById('resultCard').style.display = 'none';
+
+  const folderUrl = document.getElementById('folderUrl').value.trim();
+  if (!folderUrl) {
+    showError('Google DriveのフォルダURLを入力してください');
+    return;
+  }
+  const folderId = extractFolderId(folderUrl);
+  if (!folderId) {
+    showError('正しいGoogle DriveフォルダURLを入力してください（例: https://drive.google.com/drive/folders/XXXX）');
+    return;
+  }
+
+  const params = {
+    folder: folderId,
+    title: document.getElementById('albumLabel').value.trim(),
+    date: document.getElementById('shootDate').value.trim(),
+    expiry: document.getElementById('expiryDate').value,
+    pw: document.getElementById('pwInput').value,
+  };
+
+  const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(params))));
+  const base = window.location.href.replace(/\/admin(\.html)?(\?.*)?$/, '/delivery.html');
+  const url = base + '?d=' + encoded;
+
+  document.getElementById('resultUrl').textContent = url;
+  document.getElementById('resultCard').style.display = 'block';
+  document.getElementById('resultCard').scrollIntoView({ behavior: 'smooth' });
+}
+
+function copyUrl() {
+  const url = document.getElementById('resultUrl').textContent;
+  navigator.clipboard.writeText(url).then(() => {
+    const el = document.getElementById('copyDone');
+    el.style.display = 'inline';
+    setTimeout(() => el.style.display = 'none', 2000);
+  }).catch(() => {
+    document.getElementById('resultUrl').select?.();
+    alert('コピーできませんでした。URLを手動でコピーしてください。');
+  });
+}
+</script>
+</body>
+</html>
