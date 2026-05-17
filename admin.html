@@ -176,8 +176,12 @@ window.addEventListener('load', () => {
   const def = new Date();
   def.setDate(def.getDate() + 30);
   document.getElementById('expiryDate').value = def.toISOString().split('T')[0];
-  ['albumLabel','shootDate','fontSelect','folderUrl','coverNum'].forEach(id => {
+  ['albumLabel','shootDate','fontSelect','folderUrl'].forEach(id => {
     document.getElementById(id).addEventListener('input', refreshPreview);
+  });
+  document.getElementById('coverNum').addEventListener('input', () => {
+    lastPreviewFolderId = null;
+    refreshPreview();
   });
 });
 
