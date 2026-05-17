@@ -207,7 +207,7 @@ async function loadFromDrive(folderId) {
   const url = 'https://www.googleapis.com/drive/v3/files'
     + '?q=' + encodeURIComponent("'" + folderId + "' in parents and mimeType contains 'image/'")
     + '&fields=files(id,name,mimeType,createdTime)'
-    + '&orderBy=name&pageSize=500&key=' + API_KEY;
+    + '&orderBy=name&pageSize=1000&key=' + API_KEY;
   const res = await fetch(url);
   const data = await res.json();
   if (data.error) throw new Error(data.error.message);
