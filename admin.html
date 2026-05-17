@@ -79,6 +79,12 @@
         <input type="password" id="pwInput" placeholder="設定しない場合は空欄">
       </div>
     </div>
+    <div class="grid2">
+      <div class="field">
+        <div class="field-label">カバー写真の番号（任意）</div>
+        <input type="text" id="coverNum" placeholder="例: 3（空欄なら1枚目）">
+      </div>
+    </div>
     <div class="field">
       <div class="field-label">背景色</div>
       <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
@@ -144,6 +150,7 @@ function generateUrl() {
     return;
   }
 
+  const coverNum = parseInt(document.getElementById('coverNum').value.trim(), 10);
   const params = {
     folder: folderId,
     title: document.getElementById('albumLabel').value.trim(),
@@ -151,6 +158,7 @@ function generateUrl() {
     expiry: document.getElementById('expiryDate').value,
     pw: document.getElementById('pwInput').value,
     bg: document.getElementById('bgColor').value,
+    cover: (coverNum >= 1) ? coverNum - 1 : 0,
   };
 
   const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(params))));

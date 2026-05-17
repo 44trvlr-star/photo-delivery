@@ -275,7 +275,8 @@ window.addEventListener('resize', () => {
 
 function renderPhotos(list) {
   applyBg(config.bg);
-  document.getElementById('coverImg').src = list[0].full;
+  const coverIdx = (config.cover >= 0 && config.cover < list.length) ? config.cover : 0;
+  document.getElementById('coverImg').src = list[coverIdx].full;
   if (config.title) document.getElementById('coverTitle').textContent = config.title;
   if (config.date) document.getElementById('coverEyebrow').textContent = config.date;
   document.getElementById('coverDl').href = 'https://drive.google.com/drive/folders/' + config.folder;
