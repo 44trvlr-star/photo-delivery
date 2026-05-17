@@ -165,6 +165,7 @@ const API_KEY = 'AIzaSyB5icooN6gEMtDLpxMQH2-5JL0NcPvNdz8';
 let currentTitleSize = 3.2;
 let lastPreviewFolderId = null;
 let folderDebounceTimer;
+let previewFiles = null;
 const loadedFonts = new Set(['raleway']);
 const FONT_INFO = {
   'raleway':    { family:"'Raleway',sans-serif",    weight:'200', url: null },
@@ -180,11 +181,11 @@ window.addEventListener('load', () => {
     document.getElementById(id).addEventListener('input', refreshPreview);
   });
   document.getElementById('coverNum').addEventListener('input', () => {
-    const folderId = extractFolderId(document.getElementById('folderUrl').value.trim());
-    if (folderId) {
-      clearTimeout(folderDebounceTimer);
-      lastPreviewFolderId = null;
-      fetchPreviewPhoto(folderId);
+    if (previewFiles) {
+      showPreviewPhoto();
+    } else {
+      const folderId = extractFolderId(document.getElementById('folderUrl').value.trim());
+      if (folderId) { clearTimeout(folderDebounceTimer); lastPreviewFolderId = null; fetchPreviewPhoto(folderId); }
     }
   });
 });
@@ -230,22 +231,29 @@ function refreshPreview() {
 async function fetchPreviewPhoto(folderId) {
   lastPreviewFolderId = folderId;
   try {
-    const coverNum = Math.max(parseInt(document.getElementById('coverNum').value.trim()) || 1, 1);
     const url = 'https://www.googleapis.com/drive/v3/files'
       + '?q=' + encodeURIComponent("'" + folderId + "' in parents and mimeType contains 'image/'")
-      + '&fields=files(id)&orderBy=name&pageSize=' + coverNum + '&key=' + API_KEY;
+      + '&fields=files(id,name)&orderBy=name&pageSize=500&key=' + API_KEY;
     const res = await fetch(url);
     const data = await res.json();
     if (data.files && data.files.length > 0) {
-      const idx = Math.min(coverNum - 1, data.files.length - 1);
-      const img = document.getElementById('prevImg');
-      img.onload = () => {
-        img.style.display = 'block';
-        document.getElementById('prevPlaceholder').style.display = 'none';
-      };
-      img.src = 'https://drive.google.com/thumbnail?id=' + data.files[idx].id + '&sz=w800';
+      data.files.sort((a, b) => a.name.localeCompare(b.name, undefined, {numeric:true, sensitivity:'base'}));
+      previewFiles = data.files;
+      showPreviewPhoto();
     }
   } catch(e) {}
+}
+
+function showPreviewPhoto() {
+  if (!previewFiles || previewFiles.length === 0) return;
+  const coverNum = Math.max(parseInt(document.getElementById('coverNum').value.trim()) || 1, 1);
+  const idx = Math.min(coverNum - 1, previewFiles.length - 1);
+  const img = document.getElementById('prevImg');
+  img.onload = () => {
+    img.style.display = 'block';
+    document.getElementById('prevPlaceholder').style.display = 'none';
+  };
+  img.src = 'https://drive.google.com/thumbnail?id=' + previewFiles[idx].id + '&sz=w800';
 }
 
 function extractFolderId(url) {
