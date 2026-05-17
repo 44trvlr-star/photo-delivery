@@ -29,30 +29,32 @@
   .pw-btn:hover{background:#333;}
   .pw-error{font-size:0.72rem;color:var(--error);margin-top:0.5rem;min-height:1em;}
 
-  /* ALBUM META */
-  .album-meta{display:none;padding:2rem 2rem 0;align-items:flex-end;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
-  .album-name{font-family:'Playfair Display',serif;font-size:1.6rem;font-weight:400;letter-spacing:0.02em;}
-  .album-meta-right{display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;padding-bottom:0.2rem;}
-  .meta-tag{font-size:0.68rem;letter-spacing:0.05em;color:var(--muted);}
-  .meta-tag+.meta-tag::before{content:'·';margin-right:0.5rem;}
-  .dl-all-btn{background:var(--text);color:#fff;border:none;font-family:'Jost',sans-serif;font-size:0.72rem;font-weight:400;letter-spacing:0.1em;text-transform:uppercase;padding:0.55rem 1.3rem;border-radius:2px;cursor:pointer;display:none;text-decoration:none;transition:opacity 0.2s;}
-  .dl-all-btn:hover{opacity:0.75;}
+  /* COVER */
+  .cover{display:none;position:relative;height:72vh;min-height:320px;overflow:hidden;}
+  .cover-img{width:100%;height:100%;object-fit:cover;display:block;}
+  .cover-grad{position:absolute;inset:0;background:linear-gradient(to bottom,rgba(0,0,0,0) 30%,rgba(0,0,0,0.68) 100%);}
+  .cover-content{position:absolute;bottom:0;left:0;right:0;padding:2rem 2.5rem 2.5rem;color:#fff;}
+  .cover-eyebrow{font-size:0.63rem;font-weight:500;letter-spacing:0.16em;text-transform:uppercase;opacity:0.6;margin-bottom:0.55rem;}
+  .cover-title{font-family:'Playfair Display',serif;font-size:2.4rem;font-weight:400;letter-spacing:0.01em;line-height:1.15;margin-bottom:0.55rem;}
+  .cover-meta{font-size:0.67rem;letter-spacing:0.1em;opacity:0.5;margin-bottom:1.4rem;}
+  .cover-dl{display:inline-flex;align-items:center;gap:0.4rem;background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.35);color:#fff;font-family:'Jost',sans-serif;font-size:0.68rem;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;text-decoration:none;padding:0.55rem 1.2rem;border-radius:2px;backdrop-filter:blur(6px);transition:background 0.2s;}
+  .cover-dl:hover{background:rgba(255,255,255,0.22);}
+  @media(max-width:720px){.cover{height:55vh;}.cover-content{padding:1.25rem 1.25rem 1.5rem;}.cover-title{font-size:1.65rem;}.cover-eyebrow{display:none;}}
 
   /* GALLERY */
-  .gallery-wrap{padding:1.5rem 1.5rem 3rem;}
-  @media(max-width:720px){.gallery-wrap{padding:0.75rem 0 2rem;}.album-meta{padding:1.25rem 1rem 0;}}
-  .gallery{display:flex;gap:3px;align-items:flex-start;}
-  .gallery-col{flex:1;display:flex;flex-direction:column;gap:3px;}
+  .gallery-wrap{padding:2px 2px 4rem;}
+  @media(max-width:720px){.gallery-wrap{padding:2px 2px 2.5rem;}}
+  .gallery{display:flex;gap:2px;align-items:flex-start;}
+  .gallery-col{flex:1;display:flex;flex-direction:column;gap:2px;}
   .photo-card{overflow:hidden;position:relative;cursor:pointer;background:#fff;}
   .photo-card img{width:100%;height:auto;display:block;}
-  .photo-card-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:0.5rem;opacity:0;}
-  .card-btn{background:#fff;border:none;color:var(--text);font-family:'Jost',sans-serif;font-size:0.62rem;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;padding:0.35rem 0.75rem;cursor:pointer;opacity:0.92;}
+  .photo-card-overlay{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:flex-end;padding:8px;}
+  .card-dl-btn{width:32px;height:32px;background:rgba(255,255,255,0.88);border:none;border-radius:50%;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:0.75rem;color:var(--text);opacity:0;flex-shrink:0;}
   @media(hover:hover){
-    .photo-card img{transition:opacity 0.3s;}
-    .photo-card:hover img{opacity:0.85;}
-    .photo-card-overlay{transition:opacity 0.25s;}
-    .photo-card:hover .photo-card-overlay{opacity:1;}
-    .card-btn:hover{opacity:1;}
+    .photo-card img{transition:opacity 0.25s;}
+    .photo-card:hover img{opacity:0.82;}
+    .card-dl-btn{transition:opacity 0.2s;}
+    .photo-card:hover .card-dl-btn{opacity:1;}
   }
 
   .loading{padding:5rem 2rem;text-align:center;color:var(--muted);font-size:0.82rem;letter-spacing:0.05em;}
@@ -116,12 +118,14 @@ const API_KEY = 'AIzaSyB5icooN6gEMtDLpxMQH2-5JL0NcPvNdz8';
   </div>
 </div>
 
-<div class="album-meta" id="albumMeta">
-  <div class="album-name" id="albumName"></div>
-  <div class="album-meta-right">
-    <div class="meta-tag" id="metaDate" style="display:none"></div>
-    <div class="meta-tag" id="metaCount"></div>
-    <a class="dl-all-btn" id="dlAllBtn" href="#" target="_blank" rel="noopener">↓ 一括ダウンロード（ZIP）</a>
+<div class="cover" id="cover">
+  <img class="cover-img" id="coverImg" src="" alt="">
+  <div class="cover-grad"></div>
+  <div class="cover-content">
+    <div class="cover-eyebrow" id="coverEyebrow"></div>
+    <div class="cover-title" id="coverTitle"></div>
+    <div class="cover-meta" id="coverMeta"></div>
+    <a class="cover-dl" id="coverDl" href="#" target="_blank" rel="noopener">↓ すべてダウンロード</a>
   </div>
 </div>
 
@@ -249,8 +253,7 @@ function renderGallery(list) {
     card.className = 'photo-card';
     card.innerHTML = '<img src="' + p.thumb + '" alt="' + p.name + '" loading="lazy">'
       + '<div class="photo-card-overlay">'
-      + '<button class="card-btn" onclick="openLightbox(' + i + ');event.stopPropagation()">拡大</button>'
-      + '<button class="card-btn" onclick="dlOne(' + i + ');event.stopPropagation()">↓ DL</button>'
+      + '<button class="card-dl-btn" onclick="dlOne(' + i + ');event.stopPropagation()" title="ダウンロード">↓</button>'
       + '</div>';
     card.addEventListener('click', () => openLightbox(i));
     cols[i % n].appendChild(card);
@@ -273,14 +276,12 @@ window.addEventListener('resize', () => {
 
 function renderPhotos(list) {
   applyBg(config.bg);
-  document.getElementById('albumName').textContent = config.title || 'アルバム';
-  document.getElementById('metaCount').textContent = list.length + ' 枚';
-  const dateEl = document.getElementById('metaDate');
-  if (config.date) { dateEl.textContent = config.date; dateEl.style.display = ''; }
-  document.getElementById('albumMeta').style.display = 'flex';
-  const dlBtn = document.getElementById('dlAllBtn');
-  dlBtn.href = 'https://drive.google.com/drive/folders/' + config.folder;
-  dlBtn.style.display = 'inline-block';
+  document.getElementById('coverImg').src = list[0].full;
+  if (config.title) document.getElementById('coverTitle').textContent = config.title;
+  if (config.date) document.getElementById('coverEyebrow').textContent = config.date;
+  document.getElementById('coverMeta').textContent = list.length + ' 枚';
+  document.getElementById('coverDl').href = 'https://drive.google.com/drive/folders/' + config.folder;
+  document.getElementById('cover').style.display = 'block';
   renderGallery(list);
 }
 
