@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Photo Delivery セットアップガイド</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Noto Sans JP',sans-serif;font-weight:300;background:#f7f6f4;color:#1a1816;line-height:1.9;}
+  .page{max-width:740px;margin:0 auto;padding:3rem 1.5rem 6rem;}
+  h1{font-size:1.6rem;font-weight:500;letter-spacing:0.02em;margin-bottom:0.3rem;}
+  .subtitle{font-size:0.84rem;color:#888;margin-bottom:0.75rem;}
+  .intro{font-size:0.84rem;color:#555;margin-bottom:3rem;line-height:1.9;background:#fff;border:1px solid #e8e6e2;border-radius:10px;padding:1.25rem 1.5rem;}
+  .section-title{font-size:0.65rem;font-weight:700;letter-spacing:0.15em;text-transform:uppercase;color:#aaa;margin:2.5rem 0 0.75rem;}
+  .step{background:#fff;border-radius:10px;padding:1.75rem 2rem;margin-bottom:1rem;border:1px solid #e8e6e2;}
+  .step-num{display:inline-block;background:#1a1816;color:#fff;font-size:0.65rem;font-weight:500;letter-spacing:0.1em;padding:0.2rem 0.65rem;border-radius:100px;margin-bottom:0.75rem;}
+  .step-num.green{background:#2c6e49;}
+  .step h2{font-size:1rem;font-weight:500;margin-bottom:0.85rem;}
+  .step p{font-size:0.84rem;color:#444;margin-bottom:0.75rem;line-height:1.9;}
+  .step p:last-child{margin-bottom:0;}
+  ol{padding-left:1.5rem;font-size:0.84rem;color:#444;}
+  ul{padding-left:1.5rem;font-size:0.84rem;color:#444;}
+  li{margin-bottom:0.55rem;line-height:1.8;}
+  li li{margin-top:0.3rem;}
+  .note{background:#fef3e2;border:1px solid #fcd88a;border-radius:6px;padding:0.8rem 1rem;font-size:0.78rem;color:#7c4a00;margin-top:0.85rem;line-height:1.8;}
+  .tip{background:#eef4f0;border:1px solid #c2dece;border-radius:6px;padding:0.8rem 1rem;font-size:0.78rem;color:#1a4a2e;margin-top:0.85rem;line-height:1.8;}
+  .code{background:#f0ece4;border-radius:4px;padding:0.15rem 0.5rem;font-family:monospace;font-size:0.88em;color:#1a1816;word-break:break-all;}
+  .code-block{background:#f0ece4;border-radius:6px;padding:0.75rem 1rem;font-family:monospace;font-size:0.82rem;color:#1a1816;margin:0.5rem 0;line-height:1.6;}
+  hr{border:none;border-top:1px solid #e8e6e2;margin:2.5rem 0;}
+  .usage{background:#eef4f0;border:1px solid #c2dece;border-radius:10px;padding:1.75rem 2rem;margin-bottom:1rem;}
+  .usage h2{font-size:1rem;font-weight:500;margin-bottom:0.85rem;color:#2c6e49;}
+  .faq{background:#fff;border-radius:10px;padding:1.75rem 2rem;margin-bottom:1rem;border:1px solid #e8e6e2;}
+  .faq-q{font-size:0.9rem;font-weight:500;margin-bottom:0.4rem;margin-top:1rem;}
+  .faq-q:first-child{margin-top:0;}
+  .faq-a{font-size:0.84rem;color:#444;line-height:1.9;}
+  a{color:#2c6e49;}
+  strong{font-weight:500;}
+  .badge{display:inline-block;background:#f0ece4;color:#888;font-size:0.65rem;font-weight:500;letter-spacing:0.08em;padding:0.1rem 0.5rem;border-radius:4px;vertical-align:middle;margin-left:0.3rem;}
+</style>
+</head>
+<body>
+<div class="page">
+
+  <h1>Photo Delivery セットアップガイド</h1>
+  <div class="subtitle">写真納品サイトをゼロから始める手順書</div>
+
+  <div class="intro">
+    このガイドに沿って設定すると、クライアントに写真を納品するための専用サイトが作れます。<br>
+    一度設定してしまえば、毎回の使い方はとてもシンプルです。<strong>費用は完全無料</strong>、難しい知識も不要です。<br><br>
+    所要時間の目安：<strong>30〜60分</strong>（初回のみ）
+  </div>
+
+  <div class="section-title">はじめる前に</div>
+
+  <div class="step">
+    <div class="step-num">準備</div>
+    <h2>必要なものを確認する</h2>
+    <ul>
+      <li><strong>Googleアカウント</strong>（既存のものでOK。写真の保管と API に使います）</li>
+      <li><strong>GitHubアカウント</strong>（無料。サイトの公開に使います。これから作ります）</li>
+      <li><strong>納品ファイル一式</strong>（3ファイル）
+        <ul>
+          <li>delivery.html</li>
+          <li>admin.html</li>
+          <li>index.html</li>
+        </ul>
+      </li>
+    </ul>
+    <div class="tip">💡 GoogleアカウントはGmailと同じアカウントです。すでにお持ちの場合はそのまま使えます。</div>
+  </div>
+
+  <div class="section-title">セットアップ手順</div>
+
+  <div class="step">
+    <div class="step-num">STEP 1</div>
+    <h2>GitHubアカウントを作る</h2>
+    <ol>
+      <li><a href="https://github.com" target="_blank">github.com</a> をブラウザで開く</li>
+      <li>右上の「Sign up」をクリック</li>
+      <li>メールアドレス・パスワード・ユーザー名を入力して登録する</li>
+      <li>届いたメールを開き、認証コードを入力して登録を完了する</li>
+    </ol>
+    <div class="note">⚠️ ユーザー名はURLの一部になります（例：<span class="code">ユーザー名.github.io</span>）。英数字とハイフンで設定してください。</div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">STEP 2</div>
+    <h2>Google Drive APIキーを取得する</h2>
+    <p>APIキーとは「このサービスからGoogleドライブを読み込んでいいですよ」という許可証のようなものです。無料で取得できます。</p>
+    <ol>
+      <li><a href="https://console.cloud.google.com" target="_blank">console.cloud.google.com</a> を開く（Googleアカウントでログイン）</li>
+      <li>画面上部の「プロジェクトを選択」→「新しいプロジェクト」をクリック</li>
+      <li>プロジェクト名に適当な名前（例：<span class="code">photo-delivery</span>）を入力 → 「作成」</li>
+      <li>左メニューの「APIとサービス」→「ライブラリ」を開く</li>
+      <li>検索欄に <span class="code">Google Drive API</span> と入力 → 表示された「Google Drive API」をクリック → 「有効にする」</li>
+      <li>左メニューの「APIとサービス」→「認証情報」を開く</li>
+      <li>上部の「＋ 認証情報を作成」→「APIキー」をクリック</li>
+      <li>画面に表示された英数字の文字列（例：<span class="code">AIzaSyXXXXXXXX...</span>）をコピーして、メモ帳などに保存する</li>
+    </ol>
+    <div class="note">⚠️ APIキーは絶対に他人に見せないようにしてください。不正利用される可能性があります。</div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">STEP 3</div>
+    <h2>delivery.html にAPIキーを貼り付ける</h2>
+    <p>もらった <strong>delivery.html</strong> というファイルをテキストエディタで開いて、APIキーを1箇所貼り付けます。</p>
+
+    <p><strong>Macの場合：</strong></p>
+    <ol>
+      <li>delivery.html を右クリック →「このアプリケーションで開く」→「テキストエディット」を選ぶ</li>
+      <li>テキストエディットが開いたら、上メニューの「フォーマット」→「標準テキストにする」をクリック<br>
+        <span style="font-size:0.78rem;color:#888;">※ これをしないと正しく編集できません</span></li>
+      <li>キーボードで <span class="code">Command + F</span> を押して検索欄を開き、<span class="code">API_KEY</span> と入力して検索</li>
+      <li>以下の行が見つかります：
+        <div class="code-block">const API_KEY = '';</div>
+      </li>
+      <li><span class="code">''</span> の中（シングルクォート2つの間）にコピーしたAPIキーを貼り付ける：
+        <div class="code-block">const API_KEY = 'AIzaSyXXXXXXXX...';</div>
+      </li>
+      <li><span class="code">Command + S</span> で保存する</li>
+    </ol>
+
+    <p style="margin-top:1rem;"><strong>Windowsの場合：</strong></p>
+    <ol>
+      <li>delivery.html を右クリック →「プログラムから開く」→「メモ帳」を選ぶ</li>
+      <li><span class="code">Ctrl + F</span> で検索欄を開き、<span class="code">API_KEY</span> と入力して検索</li>
+      <li>同様にAPIキーを貼り付けて保存する</li>
+    </ol>
+  </div>
+
+  <div class="step">
+    <div class="step-num">STEP 4</div>
+    <h2>GitHubにリポジトリを作ってファイルをアップロードする</h2>
+    <p>「リポジトリ」とはファイルを入れる箱のことです。</p>
+    <ol>
+      <li>GitHubにログインし、右上の「＋」アイコン→「New repository」をクリック</li>
+      <li>「Repository name」に <span class="code">photo-delivery</span> と入力</li>
+      <li>「Public」（公開）を選択する</li>
+      <li>「Create repository」をクリック</li>
+      <li>次の画面で「uploading an existing file」というリンクをクリック</li>
+      <li>エクスプローラー（Mac はFinder）から以下の3ファイルをまとめてドラッグ＆ドロップ：
+        <ul>
+          <li>delivery.html（APIキーを貼り付け済みのもの）</li>
+          <li>admin.html</li>
+          <li>index.html</li>
+        </ul>
+      </li>
+      <li>画面下部の「Commit changes」ボタンをクリック</li>
+    </ol>
+    <div class="tip">💡 3ファイルを一度に選択してまとめてドロップしてください。</div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">STEP 5</div>
+    <h2>GitHub Pages を有効にしてサイトを公開する</h2>
+    <ol>
+      <li>リポジトリのページ上部にある「Settings」タブをクリック</li>
+      <li>左メニューを下にスクロールして「Pages」をクリック</li>
+      <li>「Branch」の項目で <span class="code">None</span> となっている部分を <span class="code">main</span> に変更</li>
+      <li>「Save」をクリック</li>
+      <li>2〜5分待ってからページを更新すると、以下のURLが表示される：
+        <div class="code-block">https://あなたのユーザー名.github.io/photo-delivery/</div>
+      </li>
+    </ol>
+    <div class="note">⚠️ 反映まで数分かかることがあります。すぐに開けない場合は少し待ってから再度試してください。</div>
+  </div>
+
+  <hr>
+
+  <div class="section-title">毎回の使い方</div>
+
+  <div class="usage">
+    <h2>納品するときの手順</h2>
+    <ol>
+      <li><strong>写真をGoogleドライブにアップロードする</strong><br>
+        クライアントごとにフォルダを作り、納品する写真を入れる</li>
+      <li><strong>フォルダを「共有」設定にする</strong><br>
+        フォルダを右クリック →「共有」→「リンクを知っている全員」→「閲覧者」に設定 → リンクをコピー</li>
+      <li><strong>管理画面を開く</strong><br>
+        <span class="code">https://あなたのユーザー名.github.io/photo-delivery/admin.html</span> をブックマークしておく</li>
+      <li><strong>情報を入力してURLを生成する</strong>
+        <ul>
+          <li>Google DriveのフォルダURL（コピーしたもの）</li>
+          <li>案件名（クライアントの名前など）</li>
+          <li>撮影日</li>
+          <li>公開期限（デフォルトで30日後）</li>
+          <li>合言葉（任意・設定するとパスワードが必要になる）</li>
+          <li>カバー写真の番号（何枚目をトップに表示するか。空欄なら1枚目）</li>
+          <li>タイトルフォント（英語タイトルはRaleway、日本語は明朝体かゴシックを選ぶ）</li>
+          <li>タイトルサイズ（S / M / L / XL）</li>
+          <li>背景色</li>
+        </ul>
+      </li>
+      <li><strong>プレビューで確認する</strong><br>
+        フォルダURLを入力すると管理画面内にカバー写真のプレビューが表示されます。フォント・サイズ・タイトルをリアルタイムで確認できます。</li>
+      <li><strong>URLをコピーしてクライアントに送る</strong><br>
+        「納品URLを生成する」ボタンを押して表示されたURLをコピーし、メールやLINEで送る</li>
+    </ol>
+  </div>
+
+  <hr>
+
+  <div class="section-title">よくある質問</div>
+
+  <div class="faq">
+    <div class="faq-q">Q. 費用はかかりますか？</div>
+    <div class="faq-a">GitHubとGoogle Drive APIの無料枠内であれば完全無料です。通常の撮影業務の範囲では課金は発生しません。</div>
+
+    <div class="faq-q">Q. 何枚まで対応できますか？</div>
+    <div class="faq-a">1フォルダあたり最大1,000枚まで対応しています。</div>
+
+    <div class="faq-q">Q. スマホでも見られますか？</div>
+    <div class="faq-a">はい。クライアントはスマホ・タブレット・PCどこからでも閲覧できます。</div>
+
+    <div class="faq-q">Q. 写真をダウンロードできますか？</div>
+    <div class="faq-a">はい。1枚ずつダウンロードするほか、「すべてダウンロード」ボタンからGoogleドライブのフォルダを開いてまとめてZIPダウンロードもできます。</div>
+
+    <div class="faq-q">Q. 公開期限が過ぎるとどうなりますか？</div>
+    <div class="faq-a">「公開期限が終了しました」というメッセージが表示され、写真を閲覧できなくなります。写真自体はGoogleドライブに残ります。</div>
+
+    <div class="faq-q">Q. Googleドライブのストレージは共有されますか？</div>
+    <div class="faq-a">いいえ。写真はそれぞれのGoogleアカウントのドライブに保存されます。他の人のストレージは使いません。</div>
+
+    <div class="faq-q">Q. ファイルを更新するにはどうすればいいですか？</div>
+    <div class="faq-a">GitHubのリポジトリページを開き、該当ファイルをクリック → 右上の鉛筆アイコンで編集、またはファイルを再アップロードしてください。</div>
+  </div>
+
+</div>
+</body>
+</html>
