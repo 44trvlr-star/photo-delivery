@@ -48,12 +48,16 @@
   .gallery{display:flex;gap:3px;align-items:flex-start;}
   .gallery-col{flex:1;display:flex;flex-direction:column;gap:3px;}
   .photo-card{overflow:hidden;position:relative;cursor:pointer;background:#fff;}
-  .photo-card img{width:100%;height:auto;display:block;transition:opacity 0.3s;}
-  .photo-card:hover img{opacity:0.85;}
-  .photo-card-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:0.5rem;opacity:0;transition:opacity 0.25s;}
-  .photo-card:hover .photo-card-overlay{opacity:1;}
+  .photo-card img{width:100%;height:auto;display:block;}
+  .photo-card-overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:0.5rem;opacity:0;}
   .card-btn{background:#fff;border:none;color:var(--text);font-family:'Jost',sans-serif;font-size:0.62rem;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;padding:0.35rem 0.75rem;cursor:pointer;opacity:0.92;}
-  .card-btn:hover{opacity:1;}
+  @media(hover:hover){
+    .photo-card img{transition:opacity 0.3s;}
+    .photo-card:hover img{opacity:0.85;}
+    .photo-card-overlay{transition:opacity 0.25s;}
+    .photo-card:hover .photo-card-overlay{opacity:1;}
+    .card-btn:hover{opacity:1;}
+  }
 
   .loading{padding:5rem 2rem;text-align:center;color:var(--muted);font-size:0.82rem;letter-spacing:0.05em;}
   .empty-state{padding:5rem 2rem;text-align:center;}
