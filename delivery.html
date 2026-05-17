@@ -278,7 +278,6 @@ function renderPhotos(list) {
   document.getElementById('coverImg').src = list[0].full;
   if (config.title) document.getElementById('coverTitle').textContent = config.title;
   if (config.date) document.getElementById('coverEyebrow').textContent = config.date;
-  document.getElementById('coverMeta').textContent = list.length + ' 枚';
   document.getElementById('coverDl').href = 'https://drive.google.com/drive/folders/' + config.folder;
   document.getElementById('cover').style.display = 'block';
   renderGallery(list);
