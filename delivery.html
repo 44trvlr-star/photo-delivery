@@ -192,6 +192,7 @@ async function loadFromDrive(folderId) {
   const res = await fetch(url);
   const data = await res.json();
   if (data.error) throw new Error(data.error.message);
+  data.files.sort((a, b) => a.name.localeCompare(b.name, undefined, {numeric: true, sensitivity: 'base'}));
   return data.files.map(f => ({
     name: f.name,
     created: f.createdTime || '',
