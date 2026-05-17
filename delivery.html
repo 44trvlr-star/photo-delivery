@@ -186,8 +186,21 @@ function showError(msg) {
     + '<div class="empty-sub">' + msg + '</div></div>';
 }
 
+function applyBg(color) {
+  if (!color) return;
+  const dark = color === '#1a1816' || parseInt(color.slice(1),16) < 0x555555;
+  document.body.style.background = color;
+  document.querySelector('.topbar').style.background = color;
+  document.querySelector('.topbar').style.borderBottomColor = dark ? '#333' : '#ebebeb';
+  if (dark) {
+    document.body.style.color = '#f0ede8';
+    document.querySelector('.logo').style.color = '#f0ede8';
+  }
+}
+
 function renderPhotos(list) {
   photos = list;
+  applyBg(config.bg);
   document.getElementById('albumName').textContent = config.title || 'アルバム';
   document.getElementById('metaCount').textContent = list.length + ' 枚';
   const dateEl = document.getElementById('metaDate');

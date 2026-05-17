@@ -79,6 +79,19 @@
         <input type="password" id="pwInput" placeholder="設定しない場合は空欄">
       </div>
     </div>
+    <div class="field">
+      <div class="field-label">背景色</div>
+      <div style="display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap;">
+        <input type="color" id="bgColor" value="#ffffff" style="width:44px;height:36px;border:1.5px solid var(--border);border-radius:6px;cursor:pointer;padding:2px;background:var(--off);">
+        <div id="colorSwatches" style="display:flex;gap:0.4rem;">
+          <button onclick="setBg('#ffffff')" style="width:26px;height:26px;border-radius:50%;background:#ffffff;border:1.5px solid #ddd;cursor:pointer;" title="白"></button>
+          <button onclick="setBg('#f7f6f4')" style="width:26px;height:26px;border-radius:50%;background:#f7f6f4;border:1.5px solid #ddd;cursor:pointer;" title="オフホワイト"></button>
+          <button onclick="setBg('#f0ece4')" style="width:26px;height:26px;border-radius:50%;background:#f0ece4;border:1.5px solid #ddd;cursor:pointer;" title="クリーム"></button>
+          <button onclick="setBg('#1a1816')" style="width:26px;height:26px;border-radius:50%;background:#1a1816;border:1.5px solid #555;cursor:pointer;" title="ブラック"></button>
+          <button onclick="setBg('#e8e4de')" style="width:26px;height:26px;border-radius:50%;background:#e8e4de;border:1.5px solid #ddd;cursor:pointer;" title="グレージュ"></button>
+        </div>
+      </div>
+    </div>
   </div>
 
   <div class="inline-error" id="genError"></div>
@@ -100,6 +113,10 @@ window.addEventListener('load', () => {
   def.setDate(def.getDate() + 30);
   document.getElementById('expiryDate').value = def.toISOString().split('T')[0];
 });
+
+function setBg(color) {
+  document.getElementById('bgColor').value = color;
+}
 
 function extractFolderId(url) {
   const m = url.match(/folders\/([a-zA-Z0-9_-]+)/);
@@ -133,6 +150,7 @@ function generateUrl() {
     date: document.getElementById('shootDate').value.trim(),
     expiry: document.getElementById('expiryDate').value,
     pw: document.getElementById('pwInput').value,
+    bg: document.getElementById('bgColor').value,
   };
 
   const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(params))));
