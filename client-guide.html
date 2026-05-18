@@ -224,10 +224,10 @@
   </div>
 
   <div class="tabs">
-    <button class="tab-btn active" onclick="showTab('ios')"><span class="tab-icon">📱</span>iPhone / iPad</button>
-    <button class="tab-btn" onclick="showTab('android')"><span class="tab-icon">🤖</span>Android</button>
-    <button class="tab-btn" onclick="showTab('mac')"><span class="tab-icon">💻</span>Mac</button>
-    <button class="tab-btn" onclick="showTab('win')"><span class="tab-icon">🖥</span>Windows</button>
+    <button class="tab-btn active" onclick="showTab('ios', this)"><span class="tab-icon">📱</span>iPhone / iPad</button>
+    <button class="tab-btn" onclick="showTab('android', this)"><span class="tab-icon">🤖</span>Android</button>
+    <button class="tab-btn" onclick="showTab('mac', this)"><span class="tab-icon">💻</span>Mac</button>
+    <button class="tab-btn" onclick="showTab('win', this)"><span class="tab-icon">🖥</span>Windows</button>
   </div>
 
   <!-- iOS -->
@@ -430,11 +430,11 @@
 </div>
 
 <script>
-function showTab(id) {
+function showTab(id, btn) {
   document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
   document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
   document.getElementById('tab-' + id).classList.add('active');
-  event.currentTarget.classList.add('active');
+  btn.classList.add('active');
 }
 </script>
 
