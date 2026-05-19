@@ -82,7 +82,7 @@
 
   <div class="step">
     <div class="step-num">STEP 2</div>
-    <h2>Google Drive APIキーを取得する</h2>
+    <h2>Google Drive APIキーを取得・保護する</h2>
     <p>APIキーとは「このサービスからGoogleドライブを読み込んでいいですよ」という許可証のようなものです。無料で取得できます。</p>
     <ol>
       <li><a href="https://console.cloud.google.com" target="_blank">console.cloud.google.com</a> を開く（Googleアカウントでログイン）</li>
@@ -94,35 +94,52 @@
       <li>上部の「＋ 認証情報を作成」→「APIキー」をクリック</li>
       <li>画面に表示された英数字の文字列（例：<span class="code">AIzaSyXXXXXXXX...</span>）をコピーして、メモ帳などに保存する</li>
     </ol>
-    <div class="note">⚠️ APIキーは絶対に他人に見せないようにしてください。不正利用される可能性があります。</div>
+    <div class="note">⚠️ APIキーはコードファイル内に書き込むため、次の「キーを制限する」手順が必須です。制限しないと第三者に不正利用されるリスクがあります。</div>
+
+    <p style="margin-top:1rem;"><strong>APIキーにReferrer制限をかける（必須）</strong></p>
+    <p>「このURLからのアクセスのみ許可する」という設定です。これをすることで、キーが知られても他のサイトからは使えなくなります。</p>
+    <ol>
+      <li>認証情報のページで、作成したAPIキーの名前をクリックして編集画面を開く</li>
+      <li>「アプリケーションの制限」セクションで「HTTPリファラー（ウェブサイト）」を選択</li>
+      <li>「ウェブサイトの制限」の「＋ 項目を追加」をクリックし、以下の2行を追加する：
+        <div class="code-block">https://あなたのユーザー名.github.io/*
+http://localhost/*</div>
+        <span style="font-size:0.78rem;color:#888;">※ 2行目はローカルテスト用です。不要なら省略してもOKです</span>
+      </li>
+      <li>「API の制限」セクションで「キーを制限」を選択し、「Google Drive API」のみにチェックを入れる</li>
+      <li>「保存」をクリック</li>
+    </ol>
+    <div class="tip">💡 制限設定が反映されるまで数分かかる場合があります。</div>
   </div>
 
   <div class="step">
     <div class="step-num">STEP 3</div>
-    <h2>delivery.html にAPIキーを貼り付ける</h2>
-    <p>もらった <strong>delivery.html</strong> というファイルをテキストエディタで開いて、APIキーを1箇所貼り付けます。</p>
+    <h2>delivery.html と admin.html にAPIキーを貼り付ける</h2>
+    <p>2つのファイルにAPIキーを1箇所ずつ貼り付けます。手順はどちらも同じです。</p>
 
     <p><strong>Macの場合：</strong></p>
     <ol>
       <li>delivery.html を右クリック →「このアプリケーションで開く」→「テキストエディット」を選ぶ</li>
-      <li>テキストエディットが開いたら、上メニューの「フォーマット」→「標準テキストにする」をクリック<br>
-        <span style="font-size:0.78rem;color:#888;">※ これをしないと正しく編集できません</span></li>
-      <li>キーボードで <span class="code">Command + F</span> を押して検索欄を開き、<span class="code">API_KEY</span> と入力して検索</li>
+      <li>テキストエディットが開いたら、上メニューの「フォーマット」→「標準テキストにする」をクリック</li>
+      <li><span class="code">Command + F</span> で検索欄を開き、<span class="code">YOUR_API_KEY_HERE</span> と入力して検索</li>
       <li>以下の行が見つかります：
-        <div class="code-block">const API_KEY = '';</div>
+        <div class="code-block">const API_KEY = 'YOUR_API_KEY_HERE';</div>
       </li>
-      <li><span class="code">''</span> の中（シングルクォート2つの間）にコピーしたAPIキーを貼り付ける：
+      <li><span class="code">YOUR_API_KEY_HERE</span> の部分をコピーしたAPIキーに置き換える：
         <div class="code-block">const API_KEY = 'AIzaSyXXXXXXXX...';</div>
       </li>
       <li><span class="code">Command + S</span> で保存する</li>
+      <li>admin.html でも同じ手順を繰り返す（同じAPIキーを入れてください）</li>
     </ol>
 
     <p style="margin-top:1rem;"><strong>Windowsの場合：</strong></p>
     <ol>
       <li>delivery.html を右クリック →「プログラムから開く」→「メモ帳」を選ぶ</li>
-      <li><span class="code">Ctrl + F</span> で検索欄を開き、<span class="code">API_KEY</span> と入力して検索</li>
+      <li><span class="code">Ctrl + F</span> で検索欄を開き、<span class="code">YOUR_API_KEY_HERE</span> を検索</li>
       <li>同様にAPIキーを貼り付けて保存する</li>
+      <li>admin.html でも同じ手順を繰り返す</li>
     </ol>
+    <div class="tip">💡 2ファイルに同じキーを入れます。STEP 2でReferrer制限をかけてあれば、ソースコードに書いてあっても安全です。</div>
   </div>
 
   <div class="step">
@@ -200,8 +217,8 @@
   <div class="section-title">よくある質問</div>
 
   <div class="faq">
-    <div class="faq-q">Q. 費用はかかりますか？</div>
-    <div class="faq-a">GitHubとGoogle Drive APIの無料枠内であれば完全無料です。通常の撮影業務の範囲では課金は発生しません。</div>
+    <div class="faq-q">Q. 合言葉はどのくらい安全ですか？</div>
+    <div class="faq-a">合言葉はSHA-256というハッシュ関数で変換した値がURLに埋め込まれます。URLを見ても元の合言葉は分かりません。ただし、URLそのものはクライアントに渡すものなので、重要な情報を合言葉にするのは避けてください。</div>
 
     <div class="faq-q">Q. 何枚まで対応できますか？</div>
     <div class="faq-a">1フォルダあたり最大1,000枚まで対応しています。</div>

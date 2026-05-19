@@ -174,7 +174,8 @@
 </div>
 
 <script>
-const API_KEY = 'AIzaSyB5icooN6gEMtDLpxMQH2-5JL0NcPvNdz8';
+// ★ delivery.html と同じAPIキーをここに入れてください
+const API_KEY = 'YOUR_API_KEY_HERE';
 
 let currentTitleSize = 3.2;
 let lastPreviewFolderId = null;
@@ -186,6 +187,11 @@ const FONT_INFO = {
   'noto-serif': { family:"'Noto Serif JP',serif",   weight:'300', url:'https://fonts.googleapis.com/css2?family=Noto+Serif+JP:wght@200;300&display=swap' },
   'noto-sans':  { family:"'Noto Sans JP',sans-serif",weight:'200', url:'https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@100;200&display=swap' },
 };
+
+async function hashStr(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
 
 window.addEventListener('load', () => {
   const def = new Date();
@@ -281,7 +287,7 @@ function showError(msg) {
   el.style.display = 'block';
 }
 
-function generateUrl() {
+async function generateUrl() {
   document.getElementById('genError').style.display = 'none';
   document.getElementById('resultCard').style.display = 'none';
 
@@ -291,12 +297,15 @@ function generateUrl() {
   if (!folderId) { showError('正しいGoogle DriveフォルダURLを入力してください'); return; }
 
   const coverNum = parseInt(document.getElementById('coverNum').value.trim(), 10);
+  const pwRaw = document.getElementById('pwInput').value;
+  const pwHash = pwRaw ? await hashStr(pwRaw) : '';
+
   const params = {
     folder:     folderId,
     title:      document.getElementById('albumLabel').value.trim(),
     date:       document.getElementById('shootDate').value.trim(),
     expiry:     document.getElementById('expiryDate').value,
-    pw:         document.getElementById('pwInput').value,
+    pw:         pwHash,
     bg:         document.getElementById('bgColor').value,
     cover:      (coverNum >= 1) ? coverNum - 1 : 0,
     font:       document.getElementById('fontSelect').value,

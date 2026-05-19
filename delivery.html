@@ -95,11 +95,12 @@
 <body>
 
 <!-- =============================================
-  ★ ここにGoogle Drive APIキーを1回だけ入れてください
-  Google Cloud Console → Drive API有効化 → 認証情報 → APIキー作成
+  ★ ここにGoogle Drive APIキーを入れてください
+  Google Cloud Console → 認証情報 → APIキー → キーを制限
+  → HTTPリファラー → あなたのGitHub PagesのURL（例: https://yourname.github.io/*）を追加
 ================================================ -->
 <script>
-const API_KEY = 'AIzaSyB5icooN6gEMtDLpxMQH2-5JL0NcPvNdz8';
+const API_KEY = 'YOUR_API_KEY_HERE';
 </script>
 
 <div class="topbar">
@@ -113,6 +114,7 @@ const API_KEY = 'AIzaSyB5icooN6gEMtDLpxMQH2-5JL0NcPvNdz8';
     <div class="pw-title">合言葉を入力</div>
     <div class="pw-sub">このアルバムは保護されています</div>
     <input type="password" class="pw-input" id="pwGateInput" placeholder="合言葉" onkeydown="if(event.key==='Enter')checkPw()">
+
     <button class="pw-btn" onclick="checkPw()">開く</button>
     <div class="pw-error" id="pwError"></div>
   </div>
@@ -204,15 +206,21 @@ function showSetupWarning() {
 }
 
 async function loadFromDrive(folderId) {
-  const url = 'https://www.googleapis.com/drive/v3/files'
-    + '?q=' + encodeURIComponent("'" + folderId + "' in parents and mimeType contains 'image/'")
-    + '&fields=files(id,name,mimeType,createdTime)'
-    + '&orderBy=name&pageSize=1000&key=' + API_KEY;
-  const res = await fetch(url);
-  const data = await res.json();
-  if (data.error) throw new Error(data.error.message);
-  data.files.sort((a, b) => a.name.localeCompare(b.name, undefined, {numeric: true, sensitivity: 'base'}));
-  return data.files.map(f => ({
+  let files = [], pageToken = null;
+  do {
+    const url = 'https://www.googleapis.com/drive/v3/files'
+      + '?q=' + encodeURIComponent("'" + folderId + "' in parents and mimeType contains 'image/' and trashed=false")
+      + '&fields=nextPageToken,files(id,name,mimeType,createdTime)'
+      + '&orderBy=name&pageSize=1000&key=' + API_KEY
+      + (pageToken ? '&pageToken=' + pageToken : '');
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error.message);
+    files = files.concat(data.files || []);
+    pageToken = data.nextPageToken || null;
+  } while (pageToken);
+  files.sort((a, b) => a.name.localeCompare(b.name, undefined, {numeric: true, sensitivity: 'base'}));
+  return files.map(f => ({
     name: f.name,
     created: f.createdTime || '',
     thumb: 'https://drive.google.com/thumbnail?id=' + f.id + '&sz=w600',
@@ -302,8 +310,15 @@ function renderPhotos(list) {
   renderGallery(list);
 }
 
-function checkPw() {
-  if (document.getElementById('pwGateInput').value === config.pw) {
+async function hashStr(str) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+async function checkPw() {
+  const input = document.getElementById('pwGateInput').value;
+  const hashed = await hashStr(input);
+  if (hashed === config.pw) {
     document.getElementById('pwGate').classList.remove('open');
     startLoad();
   } else {
