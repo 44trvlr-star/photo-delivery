@@ -164,6 +164,9 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-seri
 .note-issues li.skin-issue{color:#fda17a;}
 .note-issues li.skin-issue::before{color:var(--skin-text);}
 .note-advice{font-size:0.72rem;color:rgba(240,237,232,0.55);line-height:1.5;margin-top:0.35rem;padding-top:0.35rem;border-top:1px solid var(--border);}
+.note-good-points{list-style:none;display:flex;flex-direction:column;gap:0.2rem;}
+.note-good-points li{font-size:0.75rem;color:#86efac;line-height:1.5;padding-left:0.85rem;position:relative;}
+.note-good-points li::before{content:'◎';position:absolute;left:0;color:var(--ok-text);font-size:0.6rem;top:0.15em;}
 
 .analyzing{display:none;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:400px;gap:2rem;}
 .analyzing.active{display:flex;}
@@ -465,14 +468,17 @@ function buildBatchPrompt(batchStart, batchEnd, total) {
   "photo_notes": [
     {
       "index": ${batchStart},
-      "issues": ["問題点（具体的に）"],
-      "advice": "改善アドバイス"
+      "good_points": ["良かった点（◎の写真のみ、2〜3個）"],
+      "issues": ["問題点（△✕の写真のみ、具体的に）"],
+      "advice": "改善アドバイス（△✕のみ）"
     }
   ]
 }
 
 ◎=合格（納品可能）、△=要改善（軽微な問題）、✕=不合格（大きな問題）
-photo_notesは△または✕の写真のみ含めてください。`;
+全ての写真をphoto_notesに含めてください。
+◎の写真はgood_pointsに良かった点を2〜3個、issuesは空配列にしてください。
+△または✕の写真はissuesに問題点、good_pointsは空配列にしてください。`;
 }
 
 function buildSummaryPrompt(allRatings, allNotes, total) {
@@ -599,9 +605,10 @@ function renderResult(data) {
       const rating = data.photo_ratings[String(i)] || '◎';
       const note = notesMap[i];
       const cls = rating === '◎' ? 'maru' : rating === '△' ? 'sankaku' : 'batsu';
-      const issuesHtml = note ? (note.issues || []).map(x =>
+      const goodHtml = (note?.good_points || []).map(x => `<li>${x}</li>`).join('');
+      const issuesHtml = (note?.issues || []).map(x =>
         `<li${isSkinIssue(x) ? ' class="skin-issue"' : ''}>${x}</li>`
-      ).join('') : '';
+      ).join('');
       const row = document.createElement('div');
       row.className = 'note-row';
       row.innerHTML = `<img class="note-thumb" src="${photos[i-1].data}" alt="写真${i}">
@@ -610,6 +617,7 @@ function renderResult(data) {
             <span class="note-num">写真 ${i}</span>
             <span class="rating-pill ${cls}">${rating}</span>
           </div>
+          ${goodHtml ? `<ul class="note-good-points">${goodHtml}</ul>` : ''}
           ${issuesHtml ? `<ul class="note-issues">${issuesHtml}</ul>` : ''}
           ${note?.advice ? `<div class="note-advice">${note.advice}</div>` : ''}
         </div>`;
