@@ -62,6 +62,30 @@
   .preview-placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:rgba(255,255,255,0.4);font-size:0.75rem;letter-spacing:0.05em;}
   #prevTitle{font-family:'Raleway',sans-serif;font-size:1.8rem;font-weight:200;letter-spacing:0.22em;text-transform:uppercase;line-height:1.15;margin-bottom:0.5rem;transition:font-size 0.2s;}
   #prevDate{font-size:0.6rem;font-weight:400;letter-spacing:0.2em;text-transform:uppercase;opacity:0.75;}
+
+  /* CLIENT LIST */
+  .list-section{border-top:1px solid var(--border);margin-top:2.5rem;padding-top:2.5rem;padding-bottom:3rem;}
+  .list-header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:1.5rem;}
+  .list-title{font-family:'Raleway',sans-serif;font-size:0.75rem;font-weight:500;letter-spacing:0.18em;text-transform:uppercase;}
+  .list-count{font-size:0.7rem;color:var(--muted);}
+  .client-item{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:1rem 1.25rem;display:flex;align-items:center;gap:1rem;box-shadow:var(--shadow-sm);margin-bottom:0.6rem;}
+  .client-info{flex:1;min-width:0;}
+  .client-name{font-size:0.88rem;font-weight:400;margin-bottom:0.25rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .client-meta{font-size:0.68rem;color:var(--muted);display:flex;gap:0.75rem;flex-wrap:wrap;align-items:center;}
+  .exp-warn{color:#b45309;}
+  .exp-expired{color:var(--error);}
+  .status-badge{font-size:0.6rem;font-weight:500;letter-spacing:0.07em;padding:0.18rem 0.6rem;border-radius:100px;white-space:nowrap;flex-shrink:0;}
+  .badge-pending{background:#fef3e2;color:#b45309;border:1px solid #fcd88a;cursor:pointer;}
+  .badge-sent{background:#eef4f0;color:#2c6e49;border:1px solid #c2dece;cursor:pointer;}
+  .badge-expired{background:#fef2f2;color:#b91c1c;border:1px solid #fca5a5;}
+  .client-actions{display:flex;gap:0.4rem;flex-shrink:0;}
+  .act-btn{background:transparent;border:1.5px solid var(--border);color:var(--muted);font-family:'Jost',sans-serif;font-size:0.68rem;padding:0.3rem 0.65rem;border-radius:4px;cursor:pointer;transition:all 0.15s;}
+  .act-btn:hover{border-color:var(--accent);color:var(--accent);}
+  .act-btn.del:hover{border-color:var(--error);color:var(--error);}
+  .list-empty{text-align:center;padding:2.5rem 1rem;color:var(--muted);font-size:0.78rem;line-height:1.9;}
+  .save-done{font-size:0.72rem;color:var(--accent);display:none;}
+  .btn-secondary{background:var(--off);color:var(--text);border:1.5px solid var(--border);font-family:'Jost',sans-serif;font-size:0.75rem;font-weight:500;letter-spacing:0.08em;padding:0.5rem 1.1rem;border-radius:5px;cursor:pointer;transition:all 0.2s;}
+  .btn-secondary:hover{border-color:var(--accent);color:var(--accent);}
 </style>
 </head>
 <body>
@@ -159,8 +183,10 @@
     <div class="url-box" id="resultUrl"></div>
     <div class="row">
       <button class="copy-btn" onclick="copyUrl()">URLをコピー</button>
-      <button class="shorten-btn" id="shortenBtn" onclick="shortenUrl()">短縮URLを作成</button>
+      <button class="btn-secondary" id="shortenBtn" onclick="shortenUrl()">短縮URLを作成</button>
+      <button class="btn-secondary" onclick="saveToList()">一覧に追加</button>
       <span class="copy-done" id="copyDone">✓ コピーしました</span>
+      <span class="save-done" id="saveDone">✓ 保存しました</span>
     </div>
     <div class="short-url-row" id="shortUrlRow">
       <div class="result-label" style="margin-top:0.75rem;">短縮URL</div>
@@ -171,11 +197,18 @@
       </div>
     </div>
   </div>
+  <div class="list-section">
+    <div class="list-header">
+      <div class="list-title">納品一覧</div>
+      <div class="list-count" id="listCount"></div>
+    </div>
+    <div id="clientList"></div>
+  </div>
 </div>
 
 <script>
 // ★ delivery.html と同じAPIキーをここに入れてください
-const API_KEY = 'YOUR_API_KEY_HERE';
+const API_KEY = 'AIzaSyB5icooN6gEMtDLpxMQH2-5JL0NcPvNdz8';
 
 let currentTitleSize = 3.2;
 let lastPreviewFolderId = null;
@@ -197,6 +230,7 @@ window.addEventListener('load', () => {
   const def = new Date();
   def.setDate(def.getDate() + 30);
   document.getElementById('expiryDate').value = def.toISOString().split('T')[0];
+  renderList();
   ['albumLabel','shootDate','fontSelect','folderUrl'].forEach(id => {
     document.getElementById(id).addEventListener('input', refreshPreview);
   });
@@ -361,6 +395,105 @@ function copyShortUrl() {
   }).catch(() => {
     alert('コピーできませんでした。URLを手動でコピーしてください。');
   });
+}
+
+// ---- 納品一覧 ----
+const LS_KEY = 'pd_clients';
+
+function loadClients() {
+  try { return JSON.parse(localStorage.getItem(LS_KEY)) || []; }
+  catch(e) { return []; }
+}
+function storeClients(arr) { localStorage.setItem(LS_KEY, JSON.stringify(arr)); }
+
+function saveToList() {
+  const url = document.getElementById('resultUrl').textContent.trim();
+  if (!url) return;
+  const title  = document.getElementById('albumLabel').value.trim() || '（タイトルなし）';
+  const date   = document.getElementById('shootDate').value.trim();
+  const expiry = document.getElementById('expiryDate').value;
+  const clients = loadClients();
+  const saveDone = document.getElementById('saveDone');
+  if (clients.some(c => c.url === url)) {
+    saveDone.textContent = '✓ 既に保存済みです';
+    saveDone.style.display = 'inline';
+    setTimeout(() => { saveDone.style.display = 'none'; saveDone.textContent = '✓ 保存しました'; }, 2000);
+    return;
+  }
+  clients.unshift({ id: Date.now().toString(), title, date, expiry, url, savedAt: new Date().toISOString(), status: 'pending' });
+  storeClients(clients);
+  renderList();
+  saveDone.style.display = 'inline';
+  setTimeout(() => saveDone.style.display = 'none', 2000);
+}
+
+function toggleStatus(id) {
+  const clients = loadClients();
+  const c = clients.find(x => x.id === id);
+  if (!c) return;
+  c.status = c.status === 'sent' ? 'pending' : 'sent';
+  storeClients(clients);
+  renderList();
+}
+
+function deleteClient(id) {
+  if (!confirm('この案件を一覧から削除しますか？')) return;
+  storeClients(loadClients().filter(c => c.id !== id));
+  renderList();
+}
+
+function copyClientUrl(encodedUrl) {
+  const url = decodeURIComponent(encodedUrl);
+  navigator.clipboard.writeText(url).then(() => {
+    alert('URLをコピーしました');
+  }).catch(() => {});
+}
+
+function getExpiryLabel(expiry) {
+  if (!expiry) return { text: '', cls: '' };
+  const exp = new Date(expiry), today = new Date();
+  today.setHours(0,0,0,0);
+  const diff = Math.round((exp - today) / 86400000);
+  if (diff < 0)  return { text: '期限切れ', cls: 'exp-expired' };
+  if (diff === 0) return { text: '本日期限', cls: 'exp-warn' };
+  if (diff <= 7)  return { text: '残り' + diff + '日', cls: 'exp-warn' };
+  return { text: expiry.replace(/-/g, '.'), cls: '' };
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function renderList() {
+  const clients = loadClients();
+  const listEl  = document.getElementById('clientList');
+  const countEl = document.getElementById('listCount');
+  countEl.textContent = clients.length ? clients.length + '件' : '';
+  if (clients.length === 0) {
+    listEl.innerHTML = '<div class="list-empty">まだ案件がありません。<br>URLを生成して「一覧に追加」してください。</div>';
+    return;
+  }
+  const today = new Date(); today.setHours(0,0,0,0);
+  listEl.innerHTML = clients.map(c => {
+    const expired = c.expiry && new Date(c.expiry) < today;
+    const exp = getExpiryLabel(c.expiry);
+    const badgeCls   = expired ? 'badge-expired' : c.status === 'sent' ? 'badge-sent' : 'badge-pending';
+    const badgeLabel = expired ? '期限切れ' : c.status === 'sent' ? '送付済み' : '未送付';
+    const toggleAttr = expired ? '' : 'onclick="toggleStatus(\'' + c.id + '\')" title="クリックで切替"';
+    const encodedUrl = encodeURIComponent(c.url);
+    return '<div class="client-item">'
+      + '<div class="client-info">'
+      + '<div class="client-name">' + escHtml(c.title) + '</div>'
+      + '<div class="client-meta">'
+      + (c.date   ? '<span>' + escHtml(c.date) + '</span>' : '')
+      + (exp.text ? '<span class="' + exp.cls + '">' + exp.text + '</span>' : '')
+      + '</div></div>'
+      + '<span class="status-badge ' + badgeCls + '" ' + toggleAttr + '>' + badgeLabel + '</span>'
+      + '<div class="client-actions">'
+      + '<button class="act-btn" onclick="copyClientUrl(\'' + encodedUrl + '\')">URL</button>'
+      + '<button class="act-btn del" onclick="deleteClient(\'' + c.id + '\')">削除</button>'
+      + '</div></div>';
+  }).join('');
 }
 </script>
 </body>
