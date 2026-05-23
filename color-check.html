@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>色かぶり判定 — Photo Delivery</title>
+<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@300;400;500&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --white:#fff;--off:#f7f6f4;--bg:#f2f0ed;--border:#e0ddd8;
+  --text:#1a1816;--muted:#9a9590;--accent:#2c6e49;--accent-h:#235a3c;
+  --error:#b91c1c;
+  --shadow-sm:0 1px 4px rgba(0,0,0,0.07);--shadow-lg:0 12px 48px rgba(0,0,0,0.15);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Jost',sans-serif;font-weight:300;min-height:100vh;}
+.topbar{background:var(--white);border-bottom:1px solid var(--border);padding:0 2rem;height:56px;display:flex;align-items:center;justify-content:space-between;box-shadow:var(--shadow-sm);}
+.logo{font-family:'Raleway',sans-serif;font-size:0.75rem;font-weight:400;letter-spacing:0.2em;text-transform:uppercase;color:var(--text);}
+.logo em{font-style:normal;color:var(--accent);}
+.back-link{font-size:0.72rem;color:var(--muted);text-decoration:none;letter-spacing:0.05em;}
+.back-link:hover{color:var(--text);}
+.wrap{max-width:760px;margin:0 auto;padding:2.5rem 1.5rem;}
+h2{font-size:1.35rem;font-weight:400;margin-bottom:0.35rem;}
+.sub{font-size:0.78rem;color:var(--muted);margin-bottom:2rem;line-height:1.7;}
+
+/* Drop zone */
+.dropzone{border:2px dashed var(--border);border-radius:10px;padding:3.5rem 2rem;text-align:center;cursor:pointer;transition:border-color 0.2s,background 0.2s;background:var(--white);box-shadow:var(--shadow-sm);}
+.dropzone:hover,.dropzone.dragover{border-color:var(--accent);background:#f0f7f2;}
+.dz-icon{font-size:2.2rem;margin-bottom:0.75rem;}
+.dz-label{font-size:0.88rem;color:var(--text);margin-bottom:0.3rem;}
+.dz-sub{font-size:0.72rem;color:var(--muted);}
+#fileInput{display:none;}
+
+/* Canvas area */
+#canvasArea{display:none;margin-top:1.5rem;}
+.preview-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.25rem;}
+@media(max-width:560px){.preview-row{grid-template-columns:1fr;}}
+.preview-panel{background:var(--white);border:1px solid var(--border);border-radius:8px;overflow:hidden;box-shadow:var(--shadow-sm);}
+.preview-panel-label{font-size:0.65rem;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);padding:0.55rem 0.8rem;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:0.5rem;}
+.preview-panel canvas{width:100%;display:block;max-height:280px;object-fit:contain;background:#e8e6e2;}
+
+/* Legend */
+.legend{display:flex;gap:1rem;padding:0.5rem 0.8rem;font-size:0.65rem;color:var(--muted);letter-spacing:0.04em;border-top:1px solid var(--border);}
+.legend-dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:4px;vertical-align:middle;}
+
+/* Card */
+.card{background:var(--white);border:1px solid var(--border);border-radius:8px;padding:1.5rem;margin-bottom:1.25rem;box-shadow:var(--shadow-sm);}
+.card-title{font-size:0.68rem;font-weight:500;letter-spacing:0.09em;text-transform:uppercase;color:var(--muted);margin-bottom:1.1rem;}
+
+/* Result grid */
+.result-grid{display:grid;grid-template-columns:190px 1fr;gap:1.5rem;align-items:start;}
+@media(max-width:500px){.result-grid{grid-template-columns:1fr;}}
+
+/* Cast plot */
+#castPlot{display:block;border-radius:8px;}
+
+/* Axis bars */
+.axis-bar-wrap{margin-bottom:1rem;}
+.axis-bar-head{font-size:0.65rem;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;color:var(--muted);margin-bottom:0.35rem;display:flex;justify-content:space-between;align-items:center;}
+.axis-val{font-size:0.7rem;font-weight:500;color:var(--text);letter-spacing:0;}
+.axis-track{height:9px;border-radius:5px;position:relative;margin-bottom:0;}
+.axis-center{position:absolute;top:-2px;bottom:-2px;left:50%;width:2px;background:rgba(0,0,0,0.12);transform:translateX(-50%);}
+.axis-ptr{position:absolute;top:50%;transform:translate(-50%,-50%);width:13px;height:13px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 5px rgba(0,0,0,0.35);transition:left 0.5s cubic-bezier(.4,0,.2,1);}
+
+/* Diagnosis */
+.diagnosis{padding:1.1rem 0 0;}
+.sev-badge{display:inline-flex;align-items:center;gap:0.35rem;font-size:0.68rem;font-weight:500;letter-spacing:0.07em;text-transform:uppercase;padding:0.22rem 0.65rem;border-radius:100px;margin-bottom:0.75rem;}
+.sev-neutral{background:#eef4f0;color:var(--accent);}
+.sev-mild{background:#fef3e2;color:#b45309;}
+.sev-moderate{background:#fff1f2;color:#be185d;}
+.sev-strong{background:#fef2f2;color:var(--error);}
+.diag-text{font-size:0.82rem;line-height:1.75;color:var(--text);margin-bottom:0.8rem;}
+.diag-hint{font-size:0.75rem;color:var(--muted);background:var(--off);border-radius:6px;padding:0.7rem 0.9rem;line-height:1.75;}
+.diag-hint strong{color:var(--text);font-weight:500;}
+.method-badge{display:inline-block;font-size:0.6rem;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);border:1px solid var(--border);padding:0.15rem 0.5rem;border-radius:100px;margin-top:0.65rem;}
+
+.btn-reset{background:var(--text);color:var(--white);border:none;font-family:'Jost',sans-serif;font-size:0.78rem;font-weight:500;letter-spacing:0.06em;padding:0.65rem 1.3rem;border-radius:6px;cursor:pointer;margin-top:0.5rem;}
+.btn-reset:hover{background:#333;}
+
+/* No-result state */
+.no-result{font-size:0.82rem;color:var(--muted);line-height:1.75;padding:0.5rem 0;}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="logo">Photo <em>Delivery</em></div>
+  <a class="back-link" href="admin.html">← 管理画面</a>
+</div>
+
+<div class="wrap">
+  <h2>顔の色かぶり判定</h2>
+  <div class="sub">
+    写真をアップロードすると、ハイライト部分や肌色の画素を自動検出して色かぶりを診断します。<br>
+    白い背景・明るい窓・目の白目・歯など、ニュートラルな明部が含まれているとより精度が高まります。
+  </div>
+
+  <div class="dropzone" id="dropzone">
+    <div class="dz-icon">🖼</div>
+    <div class="dz-label">クリックまたはドラッグで写真をアップロード</div>
+    <div class="dz-sub">JPEG / PNG / WebP 対応 &nbsp;·&nbsp; ファイルはブラウザ内のみで処理されます</div>
+  </div>
+  <input type="file" id="fileInput" accept="image/*">
+
+  <div id="canvasArea">
+    <div class="preview-row">
+      <div class="preview-panel">
+        <div class="preview-panel-label">元の写真</div>
+        <canvas id="previewCanvas"></canvas>
+      </div>
+      <div class="preview-panel">
+        <div class="preview-panel-label">解析マスク</div>
+        <canvas id="maskCanvas"></canvas>
+        <div class="legend">
+          <span><span class="legend-dot" style="background:#f5d050;"></span>ハイライト</span>
+          <span><span class="legend-dot" style="background:#f08050;"></span>肌色</span>
+          <span><span class="legend-dot" style="background:#888;"></span>未使用</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="resultCard" style="display:none;">
+      <div class="card-title">色かぶり診断</div>
+      <div class="result-grid">
+        <div>
+          <canvas id="castPlot" width="190" height="190"></canvas>
+        </div>
+        <div>
+          <div class="axis-bar-wrap">
+            <div class="axis-bar-head">
+              <span>寒色 ← 色温度 → 暖色</span>
+              <span class="axis-val" id="wcVal"></span>
+            </div>
+            <div class="axis-track" style="background:linear-gradient(to right,#90bfdf,#f0eeeb,#e8c858);">
+              <div class="axis-center"></div>
+              <div class="axis-ptr" id="wcPtr" style="background:#1a1816;left:50%;"></div>
+            </div>
+          </div>
+          <div class="axis-bar-wrap">
+            <div class="axis-bar-head">
+              <span>マゼンタ ← 色相 → グリーン</span>
+              <span class="axis-val" id="gmVal"></span>
+            </div>
+            <div class="axis-track" style="background:linear-gradient(to right,#d090b8,#f0eeeb,#90c890);">
+              <div class="axis-center"></div>
+              <div class="axis-ptr" id="gmPtr" style="background:#1a1816;left:50%;"></div>
+            </div>
+          </div>
+          <div class="diagnosis" id="diagnosis"></div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-reset" onclick="resetTool()">別の写真を判定する</button>
+  </div>
+</div>
+
+<!-- Off-screen analysis canvas -->
+<canvas id="analysisCanvas" style="display:none;position:absolute;left:-9999px;"></canvas>
+
+<script>
+const dropzone = document.getElementById('dropzone');
+const fileInput = document.getElementById('fileInput');
+
+dropzone.addEventListener('click', () => fileInput.click());
+dropzone.addEventListener('dragover', e => { e.preventDefault(); dropzone.classList.add('dragover'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+dropzone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropzone.classList.remove('dragover');
+  const f = e.dataTransfer.files[0];
+  if (f && f.type.startsWith('image/')) loadFile(f);
+});
+fileInput.addEventListener('change', () => {
+  if (fileInput.files[0]) loadFile(fileInput.files[0]);
+});
+
+function loadFile(file) {
+  const url = URL.createObjectURL(file);
+  const img = new Image();
+  img.onload = () => { URL.revokeObjectURL(url); processImage(img); };
+  img.onerror = () => { URL.revokeObjectURL(url); alert('画像を読み込めませんでした。'); };
+  img.src = url;
+}
+
+function processImage(img) {
+  const MAX = 900;
+  let w = img.width, h = img.height;
+  if (w > MAX || h > MAX) {
+    const s = Math.min(MAX / w, MAX / h);
+    w = Math.round(w * s); h = Math.round(h * s);
+  }
+
+  const ac = document.getElementById('analysisCanvas');
+  ac.width = w; ac.height = h;
+  ac.getContext('2d').drawImage(img, 0, 0, w, h);
+
+  const pc = document.getElementById('previewCanvas');
+  pc.width = w; pc.height = h;
+  pc.getContext('2d').drawImage(img, 0, 0, w, h);
+
+  dropzone.style.display = 'none';
+  document.getElementById('canvasArea').style.display = 'block';
+  document.getElementById('resultCard').style.display = 'none';
+
+  requestAnimationFrame(() => analyze(ac, w, h));
+}
+
+/* ── Skin-pixel detection (HSV + RGB rules) ── */
+function isSkin(r, g, b) {
+  if (r < 55 || g < 28 || b < 8) return false;
+  const mx = Math.max(r, g, b);
+  const mn = Math.min(r, g, b);
+  if (mx > 248 && mn > 210) return false; // near-white highlight region
+  if (r <= g || r <= b) return false;      // R must dominate
+  const delta = mx - mn;
+  if (delta < 12) return false;
+
+  // Compute hue
+  let h;
+  if (mx === r)      h = ((g - b) / delta) * 60;
+  else if (mx === g) h = ((b - r) / delta + 2) * 60;
+  else               h = ((r - g) / delta + 4) * 60;
+  if (h < 0) h += 360;
+  // Accept hue ~0–50° and ~330–360° (warm reds/oranges)
+  if (h > 52 && h < 325) return false;
+
+  const sat = delta / mx;
+  const val = mx / 255;
+  return sat > 0.07 && sat < 0.76 && val > 0.22;
+}
+
+/* ── Main analysis ── */
+function analyze(canvas, w, h) {
+  const ctx = canvas.getContext('2d');
+  const idata = ctx.getImageData(0, 0, w, h);
+  const d = idata.data;
+  const total = w * h;
+
+  let hR=0,hG=0,hB=0,hN=0;  // highlight accumulators
+  let sR=0,sG=0,sB=0,sN=0;  // skin accumulators
+
+  // Mask: RGBA array
+  const mdata = new Uint8ClampedArray(d.length);
+
+  for (let i = 0; i < d.length; i += 4) {
+    const r = d[i], g = d[i+1], b = d[i+2];
+    const mx = Math.max(r,g,b), mn = Math.min(r,g,b);
+    const lum = (r + g + b) / 3;
+    const sat = (mx - mn) / (mx || 1);
+
+    let isHL = false, isSK = false;
+
+    // Highlight: bright + low saturation + not blown out
+    if (lum > 205 && sat < 0.11 && mx < 252) {
+      hR+=r; hG+=g; hB+=b; hN++; isHL = true;
+    }
+
+    // Skin (only if not already a highlight region)
+    if (!isHL && isSkin(r, g, b)) {
+      sR+=r; sG+=g; sB+=b; sN++; isSK = true;
+    }
+
+    // Build mask pixel
+    if (isHL) {
+      mdata[i]=245; mdata[i+1]=210; mdata[i+2]=50; mdata[i+3]=220;
+    } else if (isSK) {
+      mdata[i]=240; mdata[i+1]=128; mdata[i+2]=64; mdata[i+3]=200;
+    } else {
+      mdata[i]=30; mdata[i+1]=30; mdata[i+2]=30; mdata[i+3]=100;
+    }
+  }
+
+  // Draw mask canvas: dim original + colored overlay
+  const mc = document.getElementById('maskCanvas');
+  mc.width = w; mc.height = h;
+  const mctx = mc.getContext('2d');
+  mctx.drawImage(canvas, 0, 0);
+  mctx.fillStyle = 'rgba(0,0,0,0.32)';
+  mctx.fillRect(0, 0, w, h);
+
+  const tempC = document.createElement('canvas');
+  tempC.width = w; tempC.height = h;
+  tempC.getContext('2d').putImageData(new ImageData(mdata, w, h), 0, 0);
+  mctx.drawImage(tempC, 0, 0);
+
+  // ── Cast calculation ──
+  let result = null;
+
+  if (hN > total * 0.003) {
+    // Highlight method: deviation of near-white pixels from true gray
+    const aR=hR/hN, aG=hG/hN, aB=hB/hN;
+    const neutral = (aR + aG + aB) / 3;
+    result = {
+      method: 'highlight',
+      count: hN,
+      warmCool: (aR - aB) / neutral * 100,
+      greenMagenta: (aG - (aR + aB) / 2) / neutral * 100,
+      skinN: sN,
+    };
+  } else if (sN > total * 0.008) {
+    // Skin method: deviation of detected skin from reference skin ratios
+    // Reference (neutral daylight): G/R ≈ 0.782, B/R ≈ 0.627
+    const aR=sR/sN, aG=sG/sN, aB=sB/sN;
+    const refGR = 0.782, refBR = 0.627;
+    result = {
+      method: 'skin',
+      count: sN,
+      warmCool: (1 - (aB / aR) / refBR) * 28,
+      greenMagenta: ((aG / aR) - refGR) * 65,
+      skinN: sN,
+    };
+  }
+
+  document.getElementById('resultCard').style.display = 'block';
+  displayResults(result, hN, sN);
+}
+
+/* ── Display ── */
+function displayResults(result, hN, sN) {
+  if (!result) {
+    document.getElementById('diagnosis').innerHTML =
+      '<div class="no-result">ハイライト部分や肌色ピクセルが十分に検出できませんでした。<br>'
+      + '白い背景・窓の光・白い服など、ニュートラルな明部が含まれる写真で再試行してください。</div>';
+    drawCastPlot(0, 0, true);
+    return;
+  }
+
+  const wc = result.warmCool;
+  const gm = result.greenMagenta;
+  const mag = Math.sqrt(wc * wc + gm * gm);
+
+  // Severity
+  let sevClass, sevLabel;
+  if (mag < 2.8)       { sevClass='sev-neutral';  sevLabel='ニュートラル'; }
+  else if (mag < 6.5)  { sevClass='sev-mild';     sevLabel='軽微な色かぶり'; }
+  else if (mag < 13)   { sevClass='sev-moderate'; sevLabel='中程度の色かぶり'; }
+  else                 { sevClass='sev-strong';    sevLabel='強い色かぶり'; }
+
+  // Direction text
+  const parts = [];
+  if (Math.abs(wc) > 1.8) parts.push(wc > 0 ? '暖色（オレンジ〜イエロー）' : '寒色（ブルー〜シアン）');
+  if (Math.abs(gm) > 1.8) parts.push(gm > 0 ? 'グリーン' : 'マゼンタ（ピンク）');
+  const dirText = parts.length
+    ? parts.join('・') + 'の色かぶりが検出されました。'
+    : '色かぶりはほぼ検出されませんでした。';
+
+  // Correction hints
+  const hints = [];
+  if (Math.abs(wc) > 2.5)
+    hints.push(wc > 0
+      ? '<strong>色温度（Temp）</strong>を下げる（−方向、寒色へ）'
+      : '<strong>色温度（Temp）</strong>を上げる（＋方向、暖色へ）');
+  if (Math.abs(gm) > 2.5)
+    hints.push(gm > 0
+      ? '<strong>色相（Tint）</strong>をマゼンタ方向へ（−方向）'
+      : '<strong>色相（Tint）</strong>をグリーン方向へ（＋方向）');
+
+  // Axis bars (map to 0–100%)
+  const wcPct = clamp(50 + wc * 2.2, 4, 96);
+  const gmPct = clamp(50 + gm * 3.0, 4, 96);
+  document.getElementById('wcPtr').style.left = wcPct + '%';
+  document.getElementById('gmPtr').style.left = gmPct + '%';
+  document.getElementById('wcVal').textContent =
+    wc > 0.5 ? `+${wc.toFixed(1)}% 暖色` : wc < -0.5 ? `${wc.toFixed(1)}% 寒色` : 'ニュートラル';
+  document.getElementById('gmVal').textContent =
+    gm > 0.5 ? `+${gm.toFixed(1)}% グリーン` : gm < -0.5 ? `${gm.toFixed(1)}% マゼンタ` : 'ニュートラル';
+
+  // Diagnosis HTML
+  const methodLabel = result.method === 'highlight'
+    ? `ハイライト基準（${hN.toLocaleString()} px）`
+    : `肌色基準（${sN.toLocaleString()} px）`;
+  let html = `<div class="sev-badge ${sevClass}">${sevLabel}</div>`;
+  html += `<div class="diag-text">${dirText}</div>`;
+  if (hints.length) {
+    html += `<div class="diag-hint"><strong>Lightroom / Camera Raw 補正の目安</strong><br>${hints.join('<br>')}</div>`;
+  }
+  html += `<div class="method-badge">解析方法: ${methodLabel}</div>`;
+  document.getElementById('diagnosis').innerHTML = html;
+
+  drawCastPlot(wc, gm, false);
+}
+
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+
+/* ── Cast plot canvas ── */
+function drawCastPlot(wc, gm, noData) {
+  const cv = document.getElementById('castPlot');
+  const ctx = cv.getContext('2d');
+  const W = 190, H = 190, cx = 95, cy = 95, R = 78;
+
+  ctx.clearRect(0, 0, W, H);
+
+  // Background circle
+  ctx.beginPath();
+  ctx.arc(cx, cy, R, 0, Math.PI * 2);
+  ctx.fillStyle = '#f0eeeb';
+  ctx.fill();
+
+  // Warm/Cool gradient (horizontal)
+  const gWC = ctx.createLinearGradient(cx - R, cy, cx + R, cy);
+  gWC.addColorStop(0,   'rgba(80,140,220,0.28)');
+  gWC.addColorStop(0.5, 'rgba(240,238,235,0)');
+  gWC.addColorStop(1,   'rgba(230,195,60,0.28)');
+  ctx.beginPath();
+  ctx.arc(cx, cy, R, 0, Math.PI * 2);
+  ctx.fillStyle = gWC;
+  ctx.fill();
+
+  // Green/Magenta gradient (vertical)
+  const gGM = ctx.createLinearGradient(cx, cy - R, cx, cy + R);
+  gGM.addColorStop(0,   'rgba(60,180,80,0.28)');
+  gGM.addColorStop(0.5, 'rgba(240,238,235,0)');
+  gGM.addColorStop(1,   'rgba(210,80,150,0.28)');
+  ctx.beginPath();
+  ctx.arc(cx, cy, R, 0, Math.PI * 2);
+  ctx.fillStyle = gGM;
+  ctx.fill();
+
+  // Border
+  ctx.beginPath();
+  ctx.arc(cx, cy, R, 0, Math.PI * 2);
+  ctx.strokeStyle = '#d8d4cf';
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  // Crosshairs
+  ctx.save();
+  ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([3, 4]);
+  ctx.beginPath(); ctx.moveTo(cx - R, cy); ctx.lineTo(cx + R, cy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx, cy - R); ctx.lineTo(cx, cy + R); ctx.stroke();
+  ctx.restore();
+
+  // Axis labels
+  ctx.font = '600 9px Jost,sans-serif';
+  ctx.fillStyle = 'rgba(0,0,0,0.3)';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  ctx.fillText('G', cx, cy - R + 5);
+  ctx.textBaseline = 'bottom';
+  ctx.fillText('M', cx, cy + R - 4);
+  ctx.textBaseline = 'middle';
+  ctx.textAlign = 'left';
+  ctx.fillText('C', cx - R + 4, cy);
+  ctx.textAlign = 'right';
+  ctx.fillText('W', cx + R - 4, cy);
+
+  // Center dot
+  ctx.beginPath();
+  ctx.arc(cx, cy, 3, 0, Math.PI * 2);
+  ctx.fillStyle = 'rgba(0,0,0,0.18)';
+  ctx.fill();
+
+  if (noData) return;
+
+  // Plot the measured cast point
+  const SCALE = 4.0;
+  let dx = wc * SCALE;
+  let dy = -gm * SCALE; // invert Y so green is up
+  const dist = Math.sqrt(dx * dx + dy * dy);
+  if (dist > R - 10) { const s = (R - 10) / dist; dx *= s; dy *= s; }
+  const px = cx + dx, py = cy + dy;
+
+  // Glow
+  const grd = ctx.createRadialGradient(px, py, 0, px, py, 16);
+  grd.addColorStop(0, 'rgba(26,24,22,0.25)');
+  grd.addColorStop(1, 'rgba(26,24,22,0)');
+  ctx.beginPath(); ctx.arc(px, py, 16, 0, Math.PI * 2);
+  ctx.fillStyle = grd; ctx.fill();
+
+  // Dot
+  ctx.beginPath();
+  ctx.arc(px, py, 7.5, 0, Math.PI * 2);
+  ctx.fillStyle = '#1a1816'; ctx.fill();
+  ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.stroke();
+}
+
+/* ── Reset ── */
+function resetTool() {
+  dropzone.style.display = '';
+  document.getElementById('canvasArea').style.display = 'none';
+  document.getElementById('resultCard').style.display = 'none';
+  fileInput.value = '';
+}
+</script>
+</body>
+</html>
