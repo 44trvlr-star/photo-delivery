@@ -106,7 +106,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-seri
   /* 写真ノート：2列・横並び */
   .photo-notes-grid{grid-template-columns:1fr 1fr!important;gap:0.3rem!important;}
   .note-row{background:#f9f9f9!important;border:1px solid #ddd!important;border-radius:4px!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-  .note-thumb{width:100px!important;aspect-ratio:3/2;}
+  .note-thumb{width:120px!important;}
   .note-row-body{padding:0.3rem 0.5rem!important;}
   .note-num{font-size:0.65rem!important;}
   .note-issues li{font-size:0.65rem!important;line-height:1.35!important;}
@@ -154,7 +154,7 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-seri
 .photo-notes-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.4rem;}
 @media(max-width:700px){.photo-notes-grid{grid-template-columns:1fr;}}
 .note-row{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;display:flex;flex-direction:row;}
-.note-thumb{width:130px;flex-shrink:0;object-fit:cover;aspect-ratio:3/2;display:block;background:var(--surface2);}
+.note-thumb{width:150px;height:auto;flex-shrink:0;object-fit:contain;display:block;background:var(--surface2);align-self:flex-start;}
 .note-row-body{padding:0.5rem 0.7rem;flex:1;min-width:0;}
 .note-header{display:flex;align-items:center;gap:0.5rem;margin-bottom:0.35rem;}
 .note-num{font-size:0.72rem;font-weight:500;color:var(--muted);}
