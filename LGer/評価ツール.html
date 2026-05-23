@@ -75,21 +75,46 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-seri
 @media print {
   .topbar,.left,.print-btn{display:none!important;}
   .layout{display:block;}
-  .right{padding:1rem;}
+  .right{padding:0.5rem 1rem;}
   body{background:#fff;color:#000;}
-  .overall-banner{border:1px solid #ccc!important;background:#f9f9f9!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+
+  /* 全体のバナー・カード */
+  .overall-banner{padding:0.6rem 0.9rem!important;margin-bottom:0.75rem!important;border:1px solid #ccc!important;background:#f9f9f9!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
   .overall-banner.合格見込み{background:#e6f4ec!important;border-color:#2a7a4a!important;}
   .overall-banner.要改善{background:#fef3c7!important;border-color:#b45309!important;}
   .overall-banner.不合格{background:#fee2e2!important;border-color:#b91c1c!important;}
+  .overall-badge{font-size:1rem!important;}
+  .overall-summary{font-size:0.72rem!important;line-height:1.5!important;}
   .overall-badge,.overall-summary,.cat-name,.cat-comment,.note-num,.card-title,.list-items li,.note-issues li{color:#000!important;}
-  .cat-row,.strengths-card,.improve-card,.note-row{background:#f9f9f9!important;border:1px solid #ddd!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+
+  /* 強み・改善点 */
+  .two-col{grid-template-columns:1fr 1fr;gap:0.4rem;margin-bottom:0.75rem!important;}
+  .strengths-card,.improve-card{padding:0.5rem 0.7rem!important;background:#f9f9f9!important;border:1px solid #ddd!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .card-title{margin-bottom:0.4rem!important;}
+  .list-items li{font-size:0.7rem!important;line-height:1.4!important;}
+
+  /* カテゴリ別評価 */
+  .categories-grid{gap:0.25rem!important;margin-bottom:0.75rem!important;}
+  .cat-row{padding:0.4rem 0.6rem!important;background:#f9f9f9!important;border:1px solid #ddd!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;grid-template-columns:170px 60px 1fr!important;}
+  .cat-name{font-size:0.7rem!important;}
+  .cat-comment{font-size:0.65rem!important;line-height:1.4!important;}
+  .rating-pill{font-size:0.72rem!important;padding:0.1rem 0.4rem!important;}
   .rating-pill.maru{background:#e6f4ec!important;color:#166534!important;border-color:#2a7a4a!important;}
   .rating-pill.sankaku{background:#fef3c7!important;color:#92400e!important;border-color:#b45309!important;}
   .rating-pill.batsu{background:#fee2e2!important;color:#991b1b!important;border-color:#b91c1c!important;}
-  .result-label,.section-label{color:#666!important;}
+
+  /* 写真ノート：2列・横並び */
+  .photo-notes-grid{grid-template-columns:1fr 1fr!important;gap:0.3rem!important;}
+  .note-row{background:#f9f9f9!important;border:1px solid #ddd!important;border-radius:4px!important;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+  .note-thumb{width:100px!important;aspect-ratio:3/2;}
+  .note-row-body{padding:0.3rem 0.5rem!important;}
+  .note-num{font-size:0.65rem!important;}
+  .note-issues li{font-size:0.65rem!important;line-height:1.35!important;}
+  .note-advice{font-size:0.62rem!important;line-height:1.35!important;margin-top:0.25rem!important;padding-top:0.25rem!important;}
+
+  .result-label{color:#666!important;margin-bottom:0.35rem!important;}
   .result{display:block!important;}
   .analyzing,.empty-state{display:none!important;}
-  .two-col{grid-template-columns:1fr 1fr;}
 }
 
 .overall-banner{border-radius:10px;padding:1.25rem 1.5rem;margin-bottom:1.75rem;display:flex;align-items:center;gap:1rem;}
@@ -126,18 +151,19 @@ body{background:var(--bg);color:var(--text);font-family:'Noto Sans JP',sans-seri
 .rating-pill.batsu{background:var(--ng-bg);color:var(--ng-text);border:1px solid var(--ng-border);}
 .cat-comment{font-size:0.76rem;color:rgba(240,237,232,0.7);line-height:1.6;}
 
-.photo-notes-grid{display:flex;flex-direction:column;gap:0.5rem;}
-.note-row{background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden;}
-.note-thumb{width:100%;max-width:560px;height:auto;object-fit:contain;display:block;background:var(--surface2);}
-.note-row-body{padding:0.75rem 1rem;}
-.note-header{display:flex;align-items:center;gap:0.6rem;margin-bottom:0.5rem;}
-.note-num{font-size:0.8rem;font-weight:500;color:var(--muted);}
-.note-issues{list-style:none;display:flex;flex-direction:column;gap:0.3rem;}
-.note-issues li{font-size:0.88rem;color:rgba(240,237,232,0.75);line-height:1.6;padding-left:1rem;position:relative;}
-.note-issues li::before{content:'▸';position:absolute;left:0;color:var(--ng-text);font-size:0.75rem;}
+.photo-notes-grid{display:grid;grid-template-columns:1fr 1fr;gap:0.4rem;}
+@media(max-width:700px){.photo-notes-grid{grid-template-columns:1fr;}}
+.note-row{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;display:flex;flex-direction:row;}
+.note-thumb{width:130px;flex-shrink:0;object-fit:cover;aspect-ratio:3/2;display:block;background:var(--surface2);}
+.note-row-body{padding:0.5rem 0.7rem;flex:1;min-width:0;}
+.note-header{display:flex;align-items:center;gap:0.5rem;margin-bottom:0.35rem;}
+.note-num{font-size:0.72rem;font-weight:500;color:var(--muted);}
+.note-issues{list-style:none;display:flex;flex-direction:column;gap:0.2rem;}
+.note-issues li{font-size:0.75rem;color:rgba(240,237,232,0.75);line-height:1.5;padding-left:0.85rem;position:relative;}
+.note-issues li::before{content:'▸';position:absolute;left:0;color:var(--ng-text);font-size:0.65rem;}
 .note-issues li.skin-issue{color:#fda17a;}
 .note-issues li.skin-issue::before{color:var(--skin-text);}
-.note-advice{font-size:0.88rem;color:rgba(240,237,232,0.6);line-height:1.7;margin-top:0.5rem;padding-top:0.5rem;border-top:1px solid var(--border);}
+.note-advice{font-size:0.72rem;color:rgba(240,237,232,0.55);line-height:1.5;margin-top:0.35rem;padding-top:0.35rem;border-top:1px solid var(--border);}
 
 .analyzing{display:none;flex-direction:column;align-items:center;justify-content:center;height:100%;min-height:400px;gap:2rem;}
 .analyzing.active{display:flex;}
