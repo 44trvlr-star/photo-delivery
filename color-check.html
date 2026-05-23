@@ -251,8 +251,9 @@ function analyze(canvas, w, h) {
 
     let isHL = false, isSK = false;
 
-    // Highlight: bright + low saturation + not blown out
-    if (lum > 205 && sat < 0.11 && mx < 252) {
+    // Highlight: bright + moderately low saturation + not blown out
+    // sat < 0.28 allows slightly tinted highlights (which carry the cast signal)
+    if (lum > 190 && sat < 0.28 && mx < 252) {
       hR+=r; hG+=g; hB+=b; hN++; isHL = true;
     }
 
@@ -332,26 +333,26 @@ function displayResults(result, hN, sN) {
 
   // Severity
   let sevClass, sevLabel;
-  if (mag < 2.8)       { sevClass='sev-neutral';  sevLabel='ニュートラル'; }
-  else if (mag < 6.5)  { sevClass='sev-mild';     sevLabel='軽微な色かぶり'; }
-  else if (mag < 13)   { sevClass='sev-moderate'; sevLabel='中程度の色かぶり'; }
+  if (mag < 1.5)       { sevClass='sev-neutral';  sevLabel='ニュートラル'; }
+  else if (mag < 5.0)  { sevClass='sev-mild';     sevLabel='軽微な色かぶり'; }
+  else if (mag < 11)   { sevClass='sev-moderate'; sevLabel='中程度の色かぶり'; }
   else                 { sevClass='sev-strong';    sevLabel='強い色かぶり'; }
 
   // Direction text
   const parts = [];
-  if (Math.abs(wc) > 1.8) parts.push(wc > 0 ? '暖色（オレンジ〜イエロー）' : '寒色（ブルー〜シアン）');
-  if (Math.abs(gm) > 1.8) parts.push(gm > 0 ? 'グリーン' : 'マゼンタ（ピンク）');
+  if (Math.abs(wc) > 1.0) parts.push(wc > 0 ? '暖色（オレンジ〜イエロー）' : '寒色（ブルー〜シアン）');
+  if (Math.abs(gm) > 1.0) parts.push(gm > 0 ? 'グリーン' : 'マゼンタ（ピンク）');
   const dirText = parts.length
     ? parts.join('・') + 'の色かぶりが検出されました。'
     : '色かぶりはほぼ検出されませんでした。';
 
   // Correction hints
   const hints = [];
-  if (Math.abs(wc) > 2.5)
+  if (Math.abs(wc) > 1.5)
     hints.push(wc > 0
       ? '<strong>色温度（Temp）</strong>を下げる（−方向、寒色へ）'
       : '<strong>色温度（Temp）</strong>を上げる（＋方向、暖色へ）');
-  if (Math.abs(gm) > 2.5)
+  if (Math.abs(gm) > 1.5)
     hints.push(gm > 0
       ? '<strong>色相（Tint）</strong>をマゼンタ方向へ（−方向）'
       : '<strong>色相（Tint）</strong>をグリーン方向へ（＋方向）');
