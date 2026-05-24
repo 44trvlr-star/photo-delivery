@@ -496,10 +496,54 @@ function renderList() {
       + '</div></div>'
       + '<span class="status-badge ' + badgeCls + '" ' + toggleAttr + '>' + badgeLabel + '</span>'
       + '<div class="client-actions">'
+      + '<button class="act-btn" onclick="editClient(\'' + encodedUrl + '\')">編集</button>'
       + '<button class="act-btn" onclick="copyClientUrl(\'' + encodedUrl + '\')">URL</button>'
       + '<button class="act-btn del" onclick="deleteClient(\'' + c.id + '\')">削除</button>'
       + '</div></div>';
   }).join('');
+}
+
+function editClient(encodedUrl) {
+  const url = decodeURIComponent(encodedUrl);
+  const match = url.match(/[?&]d=([^&]+)/);
+  if (!match) { alert('URLのデータを読み込めませんでした'); return; }
+  let params;
+  try {
+    params = JSON.parse(decodeURIComponent(escape(atob(match[1]))));
+  } catch(e) { alert('URLのデータを解析できませんでした'); return; }
+
+  document.getElementById('folderUrl').value  = params.folder ? 'https://drive.google.com/drive/folders/' + params.folder : '';
+  document.getElementById('albumLabel').value = params.title  || '';
+  document.getElementById('shootDate').value  = params.date   || '';
+  document.getElementById('expiryDate').value = params.expiry || '';
+  document.getElementById('bgColor').value    = params.bg     || '#ffffff';
+  document.getElementById('coverNum').value   = (params.cover !== undefined) ? params.cover + 1 : '';
+  if (params.font && document.getElementById('fontSelect')) {
+    document.getElementById('fontSelect').value = params.font;
+  }
+  if (params.titleSize) {
+    currentTitleSize = params.titleSize;
+    document.querySelectorAll('.size-btn').forEach(b => b.classList.toggle('active', parseFloat(b.dataset.size) === params.titleSize));
+  }
+  if (params.pw) {
+    const note = document.createElement('div');
+    note.style.cssText = 'font-size:0.72rem;color:#b45309;margin-top:0.4rem;';
+    note.textContent = '※ 合言葉は再設定が必要な場合は入力してください（セキュリティのため読み込めません）';
+    const pwField = document.getElementById('pwInput').parentElement;
+    const existing = pwField.querySelector('.pw-note');
+    if (!existing) { note.className = 'pw-note'; pwField.appendChild(note); }
+  }
+
+  document.getElementById('genError').style.display = 'none';
+  document.getElementById('resultCard').style.display = 'none';
+  refreshPreview();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  const label = document.querySelector('.field-label');
+  if (label) {
+    document.querySelector('.card').style.outline = '2px solid var(--accent)';
+    setTimeout(() => document.querySelector('.card').style.outline = '', 2000);
+  }
 }
 </script>
 </body>
