@@ -32,6 +32,12 @@ button{cursor:pointer;border:none;background:none}
 @media(min-width:960px){.layout{grid-template-columns:minmax(0,1fr) 380px;gap:24px;padding:24px 24px 0}}
 
 /* player column */
+.fixing{display:none;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:28px 20px;text-align:center}
+.fixing b{display:block;font-size:18px;margin-bottom:8px}
+.fixing p{margin:0;color:var(--sub);font-size:14px;line-height:1.7}
+body.locked .fixing{display:block}
+body.locked .stage,body.locked .bar,body.locked #ver,body.locked .finish-btn,body.locked .finish-note,body.locked .howto,body.locked #chapSec{display:none}
+body.locked .dock{position:static;box-shadow:none}
 .dock{position:sticky;top:0;z-index:20;box-shadow:0 6px 16px rgba(0,0,0,.06)}
 @media(max-width:959px){main{display:contents}}
 @media(min-width:960px){.dock{position:static;box-shadow:none}}
@@ -164,6 +170,7 @@ textarea:focus,.inp:focus{border-color:var(--text);background:#fff}
   <div class="layout">
     <main>
       <div class="dock">
+      <div class="fixing" id="fixing"><b>修正中です</b><p>いただいたマークをもとに直しています。<br>修正版ができましたら、このページでご覧いただけるようになります。</p></div>
       <div class="stage">
         <div class="player" id="player"></div>
       </div>
@@ -205,7 +212,7 @@ textarea:focus,.inp:focus{border-color:var(--text);background:#fff}
         <div class="finish">
           <div id="doneList"></div>
           <button class="finish-btn" id="finishBtn">確認おわり（お知らせする）</button>
-          <p class="finish-note">マークは「送る」を押したときに、1件ずつ届いています。全部見終わったら、このボタンでお知らせください。</p>
+          <p class="finish-note">マークは「送る」を押したときに、1件ずつ届いています。全部見終わったら、このボタンでお知らせください。押すと修正に入るため、修正版ができるまで動画はいったん見られなくなります。</p>
         </div>
       </section>
       <section class="sec" id="chapSec">
@@ -409,8 +416,19 @@ async function loadMarks(){
   try {
     const r = await fetch(`${CFG.api}?p=${encodeURIComponent(CFG.project || PID)}&_=${Date.now()}`);
     const j = await r.json();
-    if (j.ok){ const all = j.marks || []; DONE = all.filter(isDone); MARKS = all.filter(m => !isDone(m)); drawMarks(); drawStrip(); drawChapters(); }
+    if (j.ok){ const all = j.marks || []; DONE = all.filter(isDone); MARKS = all.filter(m => !isDone(m)); drawMarks(); drawStrip(); drawChapters(); applyLock(); }
   } catch(e){ /* 次の読み込みで直る */ }
+}
+// 最新版に「確認おわり」が届いていて、まだ修正版を出していない間は、動画を閉じて「修正中」にする
+let LOCK = false;
+function applyLock(){
+  const latest = CFG && CFG.versions[0];
+  const l = !!latest && DONE.some(m => m.ver === latest.id && m.status !== '対応済み');
+  if (l === LOCK) return;
+  LOCK = l;
+  document.body.classList.toggle('locked', l);
+  if (l){ if (P) P.pause(); $('player').textContent = ''; P = { now: () => 0, seek(){}, pause(){}, dur: () => (V && V.duration) || 1 }; $('finVeil').classList.add('hidden'); }
+  else if (V) setVersion(V);
 }
 function markCard(m, canJump){
   const c = el('div', 'mk' + (m.status ? ' done' : ''));
@@ -530,7 +548,7 @@ $('finSend').onclick = async () => {
   if (!j){ $('finErr').textContent = '送れませんでした。電波の良いところでもう一度押してください。'; return; }
   store.set('rv_name', name);
   DONE.push({ id: j.id, ver: V.id, t: 0, ch: body.ch, tags: body.tags, text, name, at: new Date().toISOString(), status:'', reply:'' });
-  $('finTxt').value = ''; $('finVeil').classList.add('hidden'); drawMarks();
+  $('finTxt').value = ''; $('finVeil').classList.add('hidden'); drawMarks(); applyLock();
   toast('お知らせしました。ありがとうございました');
 };
 document.addEventListener('keydown', e => { if (e.key === 'Escape') $('finVeil').classList.add('hidden'); });
