@@ -507,10 +507,10 @@ function drawOwner(){
   if (!show) return;
   const mine = MARKS.filter(m => m.ver === V.id && hasTag(m, INTERNAL) && !m.status).length;
   $('ownTxt').textContent = 'この版は下書きで、クライアントには見えていません。よければ公開、直したいところがあれば「ここを直したい」でマークしてから「作り直して」を押してください。' + (mine ? `（未対応のマーク ${mine}件）` : '');
-  const c = CTRL.filter(m => m.ver === V.id && !m.status);
+  const c = CTRL.filter(m => m.ver === V.id && m.status !== '対応済み');
   const go = c.find(m => hasTag(m, '公開OK')), redo = c.find(m => hasTag(m, '作り直し'));
   $('ownGo').disabled = $('ownRedo').disabled = !!(go || redo);
-  $('ownSt').textContent = go ? '公開の受け付け済みです。30分以内にクライアントのページに出ます。' : redo ? '作り直しの受け付け済みです。できたらメールでお知らせします。' : '';
+  $('ownSt').textContent = go ? '公開の受け付け済みです。30分以内にクライアントのページに出ます。' : redo ? (redo.status === '対応中' ? '作り直しの作業中です。できたらメールでお知らせします。' : '作り直しの受け付け済みです。始めたときと、できたときにメールでお知らせします。') : '';
 }
 async function ownerPost(tag){
   const n = MARKS.filter(m => m.ver === V.id && hasTag(m, INTERNAL) && !m.status).length;
