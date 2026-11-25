@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow">
+<title>映像チェック | FLIPSIDE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Raleway:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f6f5f2;--card:#fff;--line:#e7e4de;--text:#1d1b18;--sub:#77726a;--faint:#a9a49b;
+  --accent:#e0532f;--accent-soft:#fdeee9;--ok:#2f7a54;--ok-soft:#e7f3ec;--dark:#151412;
+  --r:12px;--shadow:0 8px 30px rgba(0,0,0,.10);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Hiragino Kaku Gothic ProN","Noto Sans JP",sans-serif;font-size:15px;line-height:1.6;min-height:100vh}
+button,input,textarea,select{font:inherit;color:inherit}
+button{cursor:pointer;border:none;background:none}
+.hidden{display:none!important}
+
+/* top */
+.top{height:52px;display:flex;align-items:center;justify-content:space-between;padding:0 16px;background:var(--card);border-bottom:1px solid var(--line)}
+.logo{font-family:Raleway,sans-serif;font-weight:500;letter-spacing:.22em;font-size:12px;white-space:nowrap}
+@media(max-width:420px){.top .logo span{display:none}}
+.logo span{color:var(--faint);letter-spacing:.12em;margin-left:.6em;font-family:inherit}
+.ver{border:1px solid var(--line);border-radius:999px;padding:5px 12px;background:var(--card);font-size:13px;max-width:55vw}
+
+.wrap{max-width:1180px;margin:0 auto;padding:0 0 80px}
+.layout{display:grid;grid-template-columns:1fr;gap:0}
+@media(min-width:960px){.layout{grid-template-columns:minmax(0,1fr) 380px;gap:24px;padding:24px 24px 0}}
+
+/* player column */
+.dock{position:sticky;top:0;z-index:20;box-shadow:0 6px 16px rgba(0,0,0,.06)}
+@media(max-width:959px){main{display:contents}}
+@media(min-width:960px){.dock{position:static;box-shadow:none}}
+.stage{background:var(--dark)}
+@media(min-width:960px){.stage{border-radius:var(--r) var(--r) 0 0;overflow:hidden}}
+.player{position:relative;width:100%;aspect-ratio:16/9;background:#000}
+.player video,.player iframe,.player>div{position:absolute;inset:0;width:100%;height:100%;border:0}
+.bar{background:var(--card);padding:10px 16px 12px;border-bottom:1px solid var(--line)}
+@media(min-width:960px){.bar{border:1px solid var(--line);border-top:0;border-radius:0 0 var(--r) var(--r)}}
+.now{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:13px;color:var(--sub)}
+.now b{color:var(--text);font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.now .tc{font-variant-numeric:tabular-nums;white-space:nowrap}
+.strip{position:relative;height:30px;margin:8px 0 10px;border-radius:6px;overflow:hidden;background:#eee;cursor:pointer;touch-action:none}
+.strip .seg{position:absolute;top:0;bottom:0;border-right:1px solid rgba(255,255,255,.9)}
+.strip .seg:nth-child(odd){background:#d9d5ce}.strip .seg:nth-child(even){background:#cbc6be}
+.strip .seg.on{background:#9c968c}
+.strip .pin{position:absolute;top:0;bottom:0;width:3px;margin-left:-1px;background:var(--accent)}
+.strip .pin.done{background:var(--ok)}
+.strip .head{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--dark);margin-left:-1px;pointer-events:none}
+.ctrl{display:flex;gap:8px}
+.ctrl .sm{flex:0 0 auto;border:1px solid var(--line);border-radius:10px;padding:0 12px;height:46px;font-size:13px;background:var(--card)}
+.mark-btn{flex:1;height:46px;border-radius:10px;background:var(--accent);color:#fff;font-weight:600;font-size:15px;letter-spacing:.04em}
+.mark-btn:active{transform:scale(.98)}
+
+/* info */
+.info{padding:18px 16px 4px}
+.client{font-size:12px;color:var(--sub);letter-spacing:.05em}
+.title{font-size:20px;font-weight:700;line-height:1.35;margin-top:2px}
+.vnote{font-size:13px;color:var(--sub);margin-top:6px;white-space:pre-wrap}
+.howto{margin:14px 16px 0;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;font-size:13px;color:var(--sub)}
+.howto b{color:var(--text)}
+.howto ol{padding-left:1.3em}
+
+/* side */
+.side{padding:0 16px}
+@media(min-width:960px){.side{padding:0}}
+.sec{margin-top:22px}
+.sec-h{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.sec-h h2{font-size:15px;font-weight:700}
+.seg-ctl{display:flex;background:#ebe8e2;border-radius:999px;padding:3px}
+.seg-ctl button{padding:4px 11px;border-radius:999px;font-size:12px;color:var(--sub)}
+.seg-ctl button.on{background:var(--card);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.empty{font-size:13px;color:var(--faint);padding:14px;text-align:center;border:1px dashed var(--line);border-radius:var(--r)}
+.mk{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin-bottom:8px}
+.mk.done{opacity:.72}
+.mk-top{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.jump{font-variant-numeric:tabular-nums;font-weight:700;color:var(--accent);background:var(--accent-soft);border-radius:6px;padding:2px 8px;font-size:13px}
+.mk.done .jump{color:var(--ok);background:var(--ok-soft)}
+.mk-ch{font-size:12px;color:var(--sub);flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.badge{font-size:11px;border-radius:999px;padding:1px 8px;border:1px solid var(--line);color:var(--sub);white-space:nowrap}
+.badge.done{border-color:#bcdcc9;background:var(--ok-soft);color:var(--ok)}
+.tags{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
+.tag{font-size:11px;background:#f0ede8;border-radius:4px;padding:1px 6px;color:#555}
+.mk-text{margin-top:6px;white-space:pre-wrap;word-break:break-word}
+.mk-meta{margin-top:6px;font-size:11px;color:var(--faint);display:flex;justify-content:space-between;gap:8px}
+.mk-reply{margin-top:8px;border-left:3px solid var(--ok);padding:4px 10px;background:var(--ok-soft);border-radius:0 6px 6px 0;font-size:13px;white-space:pre-wrap}
+.del{font-size:11px;color:var(--faint);text-decoration:underline}
+.del.arm{color:#b42318;font-weight:600}
+.old{margin-top:10px;font-size:13px;color:var(--sub)}
+.old summary{cursor:pointer;padding:6px 0}
+
+.chap{background:var(--card);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.chap button{display:flex;width:100%;text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);gap:10px;align-items:center;font-size:14px}
+.chap button:last-child{border-bottom:0}
+.chap button.on{background:#f3f1ec;font-weight:600}
+.chap .t{font-variant-numeric:tabular-nums;color:var(--sub);font-size:12px;width:56px;flex:0 0 auto}
+.chap .n{flex:1;min-width:0}
+.chap .c{font-size:11px;color:#fff;background:var(--accent);border-radius:999px;padding:0 7px}
+
+/* sheet */
+.veil{position:fixed;inset:0;background:rgba(20,18,16,.45);z-index:80;display:flex;align-items:flex-end;justify-content:center}
+@media(min-width:700px){.veil{align-items:center}}
+.sheet{background:var(--card);width:100%;max-width:520px;border-radius:18px 18px 0 0;padding:18px 18px calc(18px + env(safe-area-inset-bottom));box-shadow:var(--shadow);max-height:92vh;overflow:auto}
+@media(min-width:700px){.sheet{border-radius:18px}}
+.sheet h3{font-size:16px;display:flex;align-items:center;justify-content:space-between}
+.sheet h3 small{font-weight:400;color:var(--sub);font-size:12px}
+.adj{display:flex;align-items:center;gap:8px;margin:12px 0}
+.adj .tcbig{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;flex:1;text-align:center}
+.adj button{border:1px solid var(--line);border-radius:10px;height:40px;padding:0 12px;font-size:13px}
+.lbl{font-size:12px;color:var(--sub);margin:12px 0 6px}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{border:1px solid var(--line);border-radius:999px;padding:6px 12px;font-size:13px;background:var(--card)}
+.chip.on{background:var(--text);border-color:var(--text);color:#fff}
+textarea,.inp{width:100%;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fbfaf8;outline:none;font-size:16px}
+textarea{min-height:92px;resize:vertical}
+textarea:focus,.inp:focus{border-color:var(--text);background:#fff}
+.acts{display:flex;gap:8px;margin-top:16px}
+.acts .cancel{flex:0 0 auto;padding:0 18px;height:48px;border-radius:12px;border:1px solid var(--line)}
+.acts .send{flex:1;height:48px;border-radius:12px;background:var(--accent);color:#fff;font-weight:600}
+.acts .send:disabled{opacity:.5}
+.err{color:#b42318;font-size:12px;margin-top:8px;min-height:1em}
+
+/* gate */
+.gate{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:16px}
+.gate-card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:28px 22px;width:100%;max-width:360px;text-align:center;box-shadow:var(--shadow)}
+.gate-card .logo{display:block;margin-bottom:18px}
+.gate-card h1{font-size:17px;margin-bottom:4px}
+.gate-card p{font-size:13px;color:var(--sub);margin-bottom:16px}
+.gate-card .inp{text-align:center;letter-spacing:.1em;margin-bottom:10px}
+.gate-card .go{width:100%;height:48px;border-radius:12px;background:var(--text);color:#fff;font-weight:600}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--dark);color:#fff;border-radius:999px;padding:10px 18px;font-size:13px;z-index:120;box-shadow:var(--shadow)}
+</style>
+</head>
+<body>
+
+<div class="gate" id="gate">
+  <div class="gate-card">
+    <span class="logo">FLIPSIDE<span>映像チェック</span></span>
+    <h1 id="gateTitle">読み込み中…</h1>
+    <p id="gateSub"></p>
+    <div id="gateForm" class="hidden">
+      <input class="inp" id="pw" type="password" placeholder="合言葉" autocomplete="current-password">
+      <button class="go" id="goBtn">開く</button>
+      <div class="err" id="gateErr"></div>
+    </div>
+  </div>
+</div>
+
+<header class="top">
+  <span class="logo">FLIPSIDE<span>映像チェック</span></span>
+  <select class="ver" id="ver" aria-label="版を選ぶ"></select>
+</header>
+
+<div class="wrap">
+  <div class="layout">
+    <main>
+      <div class="dock">
+      <div class="stage">
+        <div class="player" id="player"></div>
+      </div>
+      <div class="bar">
+        <div class="now"><b id="nowCh">—</b><span class="tc" id="nowTc">0:00 / 0:00</span></div>
+        <div class="strip" id="strip" aria-label="場面の帯"></div>
+        <div class="ctrl">
+          <button class="sm" id="back5">−5秒</button>
+          <button class="mark-btn" id="markBtn">ここを直したい</button>
+          <button class="sm" id="fwd5">+5秒</button>
+        </div>
+      </div>
+      </div>
+      <div class="info">
+        <div class="client" id="client"></div>
+        <div class="title" id="title"></div>
+        <div class="vnote" id="vnote"></div>
+      </div>
+      <div class="howto">
+        <b>直してほしいところの伝え方</b>
+        <ol>
+          <li>気になるところで「ここを直したい」を押します（動画が止まります）。</li>
+          <li>当てはまるものを選んで、ひとこと書いて「送る」。</li>
+          <li>こちらで直したら、そのマークに「対応」が付きます。新しい版は上の切り替えから見られます。</li>
+        </ol>
+      </div>
+    </main>
+
+    <aside class="side">
+      <section class="sec">
+        <div class="sec-h">
+          <h2>マーク <span id="cnt" style="font-weight:400;color:var(--sub);font-size:13px"></span></h2>
+          <div class="seg-ctl" id="filter">
+            <button data-f="open" class="on">未対応</button><button data-f="all">全部</button>
+          </div>
+        </div>
+        <div id="marks"></div>
+        <details class="old hidden" id="oldWrap"><summary id="oldSum"></summary><div id="oldMarks"></div></details>
+      </section>
+      <section class="sec" id="chapSec">
+        <div class="sec-h"><h2>場面</h2></div>
+        <div class="chap" id="chap"></div>
+      </section>
+    </aside>
+  </div>
+</div>
+
+<div class="veil hidden" id="veil">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="shH">
+    <h3 id="shH">ここを直したい <small id="shCh"></small></h3>
+    <div class="adj">
+      <button data-d="-1">−1秒</button>
+      <div class="tcbig" id="shTc">0:00</div>
+      <button data-d="1">+1秒</button>
+    </div>
+    <div class="lbl">どんなこと？（いくつでも）</div>
+    <div class="chips" id="chips"></div>
+    <div class="lbl">ひとこと</div>
+    <textarea id="txt" placeholder="例：この子の顔が映っていないので、別のカットにしてほしい"></textarea>
+    <div class="lbl">お名前（はじめの1回だけ）</div>
+    <input class="inp" id="nm" placeholder="例：さくら組 担任" maxlength="40">
+    <div class="acts"><button class="cancel" id="cancel">やめる</button><button class="send" id="send">送る</button></div>
+    <div class="err" id="sendErr"></div>
+  </div>
+</div>
+
+<script>
+(() => {
+'use strict';
+const TAGS = ['差し替えたい','短く','長く','削ってほしい','順番','音','色・明るさ','テロップ','その他'];
+const qs = new URLSearchParams(location.search);
+const PID = (qs.get('p') || '').replace(/[^A-Za-z0-9_-]/g, '');
+const $ = id => document.getElementById(id);
+const store = {
+  get(k){ try { return localStorage.getItem(k); } catch(e){ return null; } },
+  set(k,v){ try { localStorage.setItem(k,v); } catch(e){} },
+  del(k){ try { localStorage.removeItem(k); } catch(e){} }
+};
+const el = (tag, cls, text) => { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; };
+const fmt = s => { s = Math.max(0, Math.floor(s || 0)); const h = Math.floor(s/3600), m = Math.floor(s%3600/60), x = s%60; return h ? `${h}:${String(m).padStart(2,'0')}:${String(x).padStart(2,'0')}` : `${m}:${String(x).padStart(2,'0')}`; };
+let toastT;
+function toast(msg){ let t = document.querySelector('.toast'); if(!t){ t = el('div','toast'); document.body.appendChild(t); } t.textContent = msg; t.classList.remove('hidden'); clearTimeout(toastT); toastT = setTimeout(()=>t.classList.add('hidden'), 2600); }
+
+/* ---------- 合言葉と読み込み ---------- */
+const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+async function decrypt(pack, pw){
+  const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveKey']);
+  const key = await crypto.subtle.deriveKey({name:'PBKDF2', salt:b64(pack.salt), iterations:pack.iter||150000, hash:'SHA-256'}, base, {name:'AES-GCM', length:256}, false, ['decrypt']);
+  const buf = await crypto.subtle.decrypt({name:'AES-GCM', iv:b64(pack.iv)}, key, b64(pack.ct));
+  return JSON.parse(new TextDecoder().decode(buf));
+}
+let PACK = null, CFG = null;
+async function boot(){
+  if (!PID){ $('gateTitle').textContent = 'ページが見つかりません'; $('gateSub').textContent = '届いたリンクをもう一度開いてください。'; return; }
+  try {
+    const r = await fetch('p/' + PID + '.json', {cache:'no-store'});
+    if (!r.ok) throw 0;
+    PACK = await r.json();
+  } catch(e){ $('gateTitle').textContent = 'ページが見つかりません'; $('gateSub').textContent = 'リンクが古いか、公開が終わっています。'; return; }
+  const saved = store.get('rv_pw_' + PID);
+  if (saved){ try { return open(await decrypt(PACK, saved)); } catch(e){ store.del('rv_pw_' + PID); } }
+  $('gateTitle').textContent = '合言葉を入れてください';
+  $('gateSub').textContent = PACK.hint || 'お知らせした合言葉で開きます。';
+  $('gateForm').classList.remove('hidden');
+  setTimeout(() => $('pw').focus(), 50);
+}
+async function tryPw(){
+  const pw = $('pw').value.trim(); if (!pw) return;
+  $('goBtn').disabled = true; $('gateErr').textContent = '';
+  try { const cfg = await decrypt(PACK, pw); store.set('rv_pw_' + PID, pw); open(cfg); }
+  catch(e){ $('gateErr').textContent = '合言葉が違います'; $('pw').select(); }
+  $('goBtn').disabled = false;
+}
+$('goBtn').onclick = tryPw;
+$('pw').addEventListener('keydown', e => { if (e.key === 'Enter') tryPw(); });
+
+/* ---------- 画面 ---------- */
+let V = null;           // 今の版
+let MARKS = [];         // サーバーのマーク
+let filter = 'open';
+const mine = new Set(JSON.parse(store.get('rv_mine') || '[]'));
+let owner = store.get('rv_owner');
+if (!owner){ owner = Array.from(crypto.getRandomValues(new Uint8Array(16)), b => b.toString(16).padStart(2,'0')).join(''); store.set('rv_owner', owner); }
+
+function open(cfg){
+  CFG = cfg;
+  if (cfg.expires && new Date(cfg.expires + 'T23:59:59') < new Date()){
+    $('gateTitle').textContent = '公開期間が終わりました'; $('gateSub').textContent = 'ご覧になりたい場合はご連絡ください。'; $('gateForm').classList.add('hidden'); return;
+  }
+  $('gate').classList.add('hidden');
+  document.title = (cfg.title || '映像チェック') + ' | FLIPSIDE';
+  $('client').textContent = cfg.client || '';
+  $('title').textContent = cfg.title || '';
+  const sel = $('ver'); sel.textContent = '';
+  cfg.versions.forEach((v, i) => { const o = el('option', null, v.label + (i === 0 ? '（最新）' : '')); o.value = v.id; sel.appendChild(o); });
+  const want = qs.get('v'); const first = cfg.versions.find(v => v.id === want) || cfg.versions[0];
+  sel.value = first.id;
+  sel.onchange = () => setVersion(cfg.versions.find(v => v.id === sel.value));
+  const nm = store.get('rv_name'); if (nm) $('nm').value = nm;
+  setVersion(first);
+  loadMarks(); setInterval(loadMarks, 60000);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) loadMarks(); });
+}
+
+/* ---------- プレーヤー ---------- */
+let P = null;
+function makePlayer(v){
+  const box = $('player'); box.textContent = '';
+  const s = v.src || {};
+  if (s.type === 'youtube') return ytPlayer(box, s.id);
+  const vid = el('video'); vid.controls = true; vid.playsInline = true; vid.preload = 'metadata';
+  vid.src = s.type === 'drive' ? `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(s.id)}?alt=media&key=${encodeURIComponent(CFG.driveKey)}` : s.url;
+  if (v.poster) vid.poster = v.poster;
+  box.appendChild(vid);
+  vid.addEventListener('error', () => toast('動画を読み込めませんでした。少し待ってから開き直してください。'));
+  return { now: () => vid.currentTime, seek: t => { vid.currentTime = Math.max(0, t); }, pause: () => vid.pause(), dur: () => vid.duration || v.duration || 0 };
+}
+let ytReady;
+function ytPlayer(box, id){
+  const div = el('div'); div.id = 'yt'; box.appendChild(div);
+  if (!ytReady) ytReady = new Promise(res => { window.onYouTubeIframeAPIReady = res; const s = document.createElement('script'); s.src = 'https://www.youtube.com/iframe_api'; document.head.appendChild(s); });
+  let yp = null;
+  ytReady.then(() => { yp = new YT.Player('yt', { videoId: id, playerVars: { playsinline: 1, rel: 0, modestbranding: 1 } }); });
+  return { now: () => yp && yp.getCurrentTime ? yp.getCurrentTime() : 0, seek: t => yp && yp.seekTo(Math.max(0,t), true), pause: () => yp && yp.pauseVideo && yp.pauseVideo(), dur: () => (yp && yp.getDuration && yp.getDuration()) || V.duration || 0 };
+}
+
+function setVersion(v){
+  V = v;
+  history.replaceState(null, '', `?p=${PID}&v=${encodeURIComponent(v.id)}`);
+  $('vnote').textContent = [v.date, v.note].filter(Boolean).join('　');
+  P = makePlayer(v);
+  drawStrip(); drawChapters(); drawMarks();
+}
+const chapters = () => (V && V.chapters) || [];
+function chapterAt(t){ const c = chapters(); let k = -1; for (let i = 0; i < c.length; i++) if (c[i].t <= t + 0.01) k = i; return k; }
+const total = () => V.duration || P.dur() || 1;
+
+function drawStrip(){
+  const s = $('strip'); s.textContent = '';
+  const c = chapters(), T = total();
+  c.forEach((ch, i) => { const d = el('div','seg'); const end = i + 1 < c.length ? c[i+1].t : T; d.style.left = (ch.t / T * 100) + '%'; d.style.width = ((end - ch.t) / T * 100) + '%'; d.title = ch.name; s.appendChild(d); });
+  if (!c.length){ const d = el('div','seg'); d.style.left = 0; d.style.width = '100%'; s.appendChild(d); }
+  MARKS.filter(m => m.ver === V.id).forEach(m => { const p = el('div', 'pin' + (m.status ? ' done' : '')); p.style.left = (m.t / T * 100) + '%'; s.appendChild(p); });
+  const h = el('div','head'); h.id = 'head'; s.appendChild(h);
+}
+function stripSeek(e){ const r = $('strip').getBoundingClientRect(); const x = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)); P.seek(x * total()); }
+$('strip').addEventListener('pointerdown', e => { stripSeek(e); const mv = ev => stripSeek(ev); const up = () => { removeEventListener('pointermove', mv); removeEventListener('pointerup', up); }; addEventListener('pointermove', mv); addEventListener('pointerup', up); });
+
+function drawChapters(){
+  const box = $('chap'); box.textContent = '';
+  const c = chapters(); $('chapSec').classList.toggle('hidden', c.length < 2);
+  c.forEach((ch, i) => {
+    const b = el('button'); b.dataset.i = i;
+    b.append(el('span','t', fmt(ch.t)), el('span','n', ch.name));
+    const n = MARKS.filter(m => m.ver === V.id && !m.status && chapterAt(m.t) === i).length;
+    if (n) b.appendChild(el('span','c', n));
+    b.onclick = () => { P.seek(ch.t); window.scrollTo({top:0, behavior:'smooth'}); };
+    box.appendChild(b);
+  });
+}
+
+let lastCh = -2;
+setInterval(() => {
+  if (!P || !V) return;
+  const t = P.now(), T = total();
+  $('nowTc').textContent = `${fmt(t)} / ${fmt(T)}`;
+  const h = $('head'); if (h) h.style.left = (t / T * 100) + '%';
+  const k = chapterAt(t);
+  if (k !== lastCh){
+    lastCh = k;
+    $('nowCh').textContent = k >= 0 ? chapters()[k].name : (V.label || '');
+    document.querySelectorAll('#strip .seg').forEach((s, i) => s.classList.toggle('on', i === k));
+    document.querySelectorAll('#chap button').forEach((b, i) => b.classList.toggle('on', i === k));
+  }
+}, 250);
+$('back5').onclick = () => P.seek(P.now() - 5);
+$('fwd5').onclick = () => P.seek(P.now() + 5);
+
+/* ---------- マーク ---------- */
+async function loadMarks(){
+  if (!CFG || !CFG.api) return;
+  try {
+    const r = await fetch(`${CFG.api}?p=${encodeURIComponent(CFG.project || PID)}&_=${Date.now()}`);
+    const j = await r.json();
+    if (j.ok){ MARKS = j.marks || []; drawMarks(); drawStrip(); drawChapters(); }
+  } catch(e){ /* 次の読み込みで直る */ }
+}
+function markCard(m, canJump){
+  const c = el('div', 'mk' + (m.status ? ' done' : ''));
+  const top = el('div','mk-top');
+  const j = el('button','jump', fmt(m.t));
+  if (canJump) j.onclick = () => { P.seek(m.t); window.scrollTo({top:0, behavior:'smooth'}); }; else j.disabled = true;
+  const k = canJump ? chapterAt(m.t) : -1;
+  top.append(j, el('span','mk-ch', m.ch || (k >= 0 ? chapters()[k].name : '')));
+  top.appendChild(el('span', 'badge' + (m.status ? ' done' : ''), m.status ? '対応済み' : '未対応'));
+  c.appendChild(top);
+  if (m.tags && m.tags.length){ const tg = el('div','tags'); m.tags.forEach(t => tg.appendChild(el('span','tag',t))); c.appendChild(tg); }
+  if (m.text) c.appendChild(el('div','mk-text', m.text));
+  if (m.reply) c.appendChild(el('div','mk-reply', '対応：' + m.reply));
+  const meta = el('div','mk-meta');
+  const when = m.at ? new Date(m.at) : null;
+  meta.appendChild(el('span', null, [m.name, when && !isNaN(when) ? `${when.getMonth()+1}/${when.getDate()} ${String(when.getHours()).padStart(2,'0')}:${String(when.getMinutes()).padStart(2,'0')}` : ''].filter(Boolean).join('・')));
+  if (mine.has(m.id) && !m.status){
+    const d = el('button','del','取り消す');
+    d.onclick = async () => {
+      if (!d.classList.contains('arm')){ d.classList.add('arm'); d.textContent = 'もう一度押すと取り消します'; setTimeout(() => { d.classList.remove('arm'); d.textContent = '取り消す'; }, 3000); return; }
+      d.disabled = true;
+      const ok = await post({a:'del', p: CFG.project || PID, id: m.id, owner});
+      if (ok){ MARKS = MARKS.filter(x => x.id !== m.id); drawMarks(); drawStrip(); drawChapters(); toast('取り消しました'); } else { d.disabled = false; toast('取り消せませんでした'); }
+    };
+    meta.appendChild(d);
+  }
+  c.appendChild(meta);
+  return c;
+}
+function drawMarks(){
+  if (!V) return;
+  const cur = MARKS.filter(m => m.ver === V.id).sort((a,b) => a.t - b.t);
+  const open = cur.filter(m => !m.status);
+  $('cnt').textContent = `（未対応 ${open.length}／全部 ${cur.length}）`;
+  const list = filter === 'open' ? open : cur;
+  const box = $('marks'); box.textContent = '';
+  if (!list.length) box.appendChild(el('div','empty', cur.length ? '未対応のマークはありません。' : 'まだマークはありません。'));
+  list.forEach(m => box.appendChild(markCard(m, true)));
+  const old = MARKS.filter(m => m.ver !== V.id);
+  $('oldWrap').classList.toggle('hidden', !old.length);
+  $('oldSum').textContent = `前の版へのマーク（${old.length}件）`;
+  const ob = $('oldMarks'); ob.textContent = '';
+  old.sort((a,b) => a.ver === b.ver ? a.t - b.t : (a.ver < b.ver ? 1 : -1)).forEach(m => { const card = markCard(m, false); const lab = (CFG.versions.find(v => v.id === m.ver) || {}).label || m.ver; card.querySelector('.mk-ch').textContent = lab + '　' + (m.ch || ''); ob.appendChild(card); });
+}
+$('filter').addEventListener('click', e => { const b = e.target.closest('button'); if (!b) return; filter = b.dataset.f; document.querySelectorAll('#filter button').forEach(x => x.classList.toggle('on', x === b)); drawMarks(); });
+
+async function post(body){
+  try {
+    const r = await fetch(CFG.api, { method:'POST', headers:{'Content-Type':'text/plain;charset=utf-8'}, body: JSON.stringify(body) });
+    const j = await r.json(); return j.ok ? j : null;
+  } catch(e){ return null; }
+}
+
+/* 入力シート */
+let draftT = 0; const picked = new Set();
+TAGS.forEach(t => { const b = el('button','chip',t); b.type = 'button'; b.onclick = () => { picked.has(t) ? picked.delete(t) : picked.add(t); b.classList.toggle('on'); }; $('chips').appendChild(b); });
+function showSheet(){
+  if (!CFG.api){ toast('マークの受け付けは準備中です'); return; }
+  P.pause(); draftT = P.now(); updSheet();
+  $('sendErr').textContent = '';
+  const d = store.get('rv_draft_' + PID); if (d && !$('txt').value) $('txt').value = d;
+  $('veil').classList.remove('hidden');
+}
+function updSheet(){ $('shTc').textContent = fmt(draftT); const k = chapterAt(draftT); $('shCh').textContent = k >= 0 ? chapters()[k].name : ''; }
+function hideSheet(){ $('veil').classList.add('hidden'); }
+$('markBtn').onclick = showSheet;
+$('cancel').onclick = hideSheet;
+$('veil').addEventListener('click', e => { if (e.target === $('veil')) hideSheet(); });
+document.querySelectorAll('.adj button').forEach(b => b.onclick = () => { draftT = Math.max(0, draftT + Number(b.dataset.d)); P.seek(draftT); updSheet(); });
+$('txt').addEventListener('input', () => store.set('rv_draft_' + PID, $('txt').value));
+$('send').onclick = async () => {
+  const text = $('txt').value.trim(), name = $('nm').value.trim();
+  if (!text && !picked.size){ $('sendErr').textContent = 'どんなことか、選ぶか書いてください。'; return; }
+  if (!name){ $('sendErr').textContent = 'お名前を入れてください。'; $('nm').focus(); return; }
+  $('send').disabled = true; $('sendErr').textContent = '';
+  const k = chapterAt(draftT);
+  const body = { a:'add', p: CFG.project || PID, ver: V.id, t: Math.round(draftT * 10) / 10, ch: k >= 0 ? chapters()[k].name : '', tags: [...picked], text, name, owner };
+  const j = await post(body);
+  $('send').disabled = false;
+  if (!j){ $('sendErr').textContent = '送れませんでした。電波の良いところでもう一度押してください（書いた内容は残っています）。'; return; }
+  store.set('rv_name', name); store.del('rv_draft_' + PID);
+  mine.add(j.id); store.set('rv_mine', JSON.stringify([...mine]));
+  MARKS.push({ id: j.id, ver: V.id, t: body.t, ch: body.ch, tags: body.tags, text, name, at: new Date().toISOString(), status:'', reply:'' });
+  $('txt').value = ''; picked.clear(); document.querySelectorAll('#chips .chip').forEach(c => c.classList.remove('on'));
+  hideSheet(); drawMarks(); drawStrip(); drawChapters(); toast('マークを送りました');
+};
+document.addEventListener('keydown', e => { if (e.key === 'Escape') hideSheet(); });
+
+boot();
+})();
+</script>
+</body>
+</html>
