@@ -56,6 +56,18 @@ body.locked .dock{position:static;box-shadow:none}
 .strip .seg.on{background:#9c968c}
 .strip .pin{position:absolute;top:0;bottom:0;width:3px;margin-left:-1px;background:var(--accent)}
 .strip .pin.done{background:var(--ok)}
+.strip .pin.fix{background:#2f6fd0;width:4px;margin-left:-2px}
+.fx{display:flex;gap:10px;align-items:flex-start;background:var(--card);border:1px solid var(--line);border-left:3px solid #2f6fd0;border-radius:var(--r);padding:10px 12px;margin-bottom:8px}
+.fx .jump{color:#2f6fd0;background:#e8f0fb;flex:0 0 auto}
+.fx div{font-size:14px;white-space:pre-wrap;word-break:break-word}
+.adm{font-size:11px;font-weight:600;color:#fff;background:#2f6fd0;border-radius:999px;padding:2px 9px;margin-right:8px}
+.own{background:#eef4fc;border:1px solid #c9daf3;border-radius:var(--r);padding:14px}
+.own p{font-size:13px;color:#3d4a5c;margin-bottom:10px}
+.own button{width:100%;height:46px;border-radius:10px;font-weight:600;margin-top:8px}
+.own .go{background:#2f6fd0;color:#fff}
+.own .redo{background:var(--card);border:1px solid #c9daf3;color:#2f6fd0}
+.own .st{font-size:13px;color:var(--ok);margin-top:10px;white-space:pre-wrap}
+body.admin .finish{display:none}
 .strip .head{position:absolute;top:-2px;bottom:-2px;width:2px;background:var(--dark);margin-left:-1px;pointer-events:none}
 .ctrl{display:flex;gap:8px}
 .ctrl .sm{flex:0 0 auto;border:1px solid var(--line);border-radius:10px;padding:0 12px;height:46px;font-size:13px;background:var(--card)}
@@ -163,7 +175,7 @@ textarea:focus,.inp:focus{border-color:var(--text);background:#fff}
 
 <header class="top">
   <span class="logo">FLIPSIDE<span>映像チェック</span></span>
-  <select class="ver" id="ver" aria-label="版を選ぶ"></select>
+  <div style="display:flex;align-items:center"><span class="adm hidden" id="admBadge">管理</span><select class="ver" id="ver" aria-label="版を選ぶ"></select></div>
 </header>
 
 <div class="wrap">
@@ -200,6 +212,18 @@ textarea:focus,.inp:focus{border-color:var(--text);background:#fff}
     </main>
 
     <aside class="side">
+      <section class="sec hidden" id="ownSec">
+        <div class="own">
+          <p id="ownTxt"></p>
+          <button class="go" id="ownGo">OK・クライアントに公開する</button>
+          <button class="redo" id="ownRedo">マークしたところを作り直して</button>
+          <div class="st" id="ownSt"></div>
+        </div>
+      </section>
+      <section class="sec hidden" id="fixSec">
+        <div class="sec-h"><h2>この版で直したところ</h2></div>
+        <div id="fixList"></div>
+      </section>
       <section class="sec">
         <div class="sec-h">
           <h2>マーク <span id="cnt" style="font-weight:400;color:var(--sub);font-size:13px"></span></h2>
@@ -212,7 +236,7 @@ textarea:focus,.inp:focus{border-color:var(--text);background:#fff}
         <div class="finish">
           <div id="doneList"></div>
           <button class="finish-btn" id="finishBtn">確認おわり（お知らせする）</button>
-          <p class="finish-note">マークは「送る」を押したときに、1件ずつ届いています。全部見終わったら、このボタンでお知らせください。押すと修正に入るため、修正版ができるまで動画はいったん見られなくなります。</p>
+          <p class="finish-note">マークは「送る」を押したときに、1件ずつ届いています。全部見終わったら、このボタンでお知らせください。直すところが無ければ、マークを付けずにそのまま押すと「OK」のお知らせになります。マークがあるときは修正に入るため、修正版ができるまで動画はいったん見られなくなります。</p>
         </div>
       </section>
       <section class="sec" id="chapSec">
@@ -233,6 +257,16 @@ textarea:focus,.inp:focus{border-color:var(--text);background:#fff}
     <input class="inp" id="finNm" placeholder="例：さくら組 担任" maxlength="40">
     <div class="acts"><button class="cancel" id="finCancel">やめる</button><button class="send" id="finSend">お知らせする</button></div>
     <div class="err" id="finErr"></div>
+  </div>
+</div>
+
+<div class="veil hidden" id="admVeil">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="admH">
+    <h3 id="admH">管理モード</h3>
+    <div class="lbl">管理パスワード</div>
+    <input class="inp" id="admPw" type="password" autocomplete="current-password">
+    <div class="acts"><button class="cancel" id="admCancel">やめる</button><button class="send" id="admGo">入る</button></div>
+    <div class="err" id="admErr"></div>
   </div>
 </div>
 
@@ -311,6 +345,15 @@ let MARKS = [];         // サーバーのマーク
 let DONE = [];          // 確認おわりの知らせ
 const DONE_TAG = '確認完了';
 const isDone = m => (m.tags || []).includes(DONE_TAG);
+const CTRL_TAGS = ['公開OK', '作り直し'];   // 吉田さんの「公開する／作り直して」
+const INTERNAL = '社内';                     // 吉田さんのマーク（クライアントには出さない）
+const hasTag = (m, t) => (m.tags || []).includes(t);
+let CTRL = [];
+let ADMIN = null;                            // 管理モードのときの送信用の印
+const sha = async t => Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(t))), b => b.toString(16).padStart(2,'0')).join('');
+const vers = () => CFG.versions.filter(v => ADMIN || !v.draft);
+const latestPublic = () => CFG.versions.find(v => !v.draft);
+const openCount = v => MARKS.filter(m => m.ver === v.id && !m.status && !hasTag(m, INTERNAL)).length;
 let filter = 'open';
 const mine = new Set(JSON.parse(store.get('rv_mine') || '[]'));
 let owner = store.get('rv_owner');
@@ -325,11 +368,17 @@ function open(cfg){
   document.title = (cfg.title || '映像チェック') + ' | FLIPSIDE';
   $('client').textContent = cfg.client || '';
   $('title').textContent = cfg.title || '';
+  const a = cfg.ownerHash && JSON.parse(store.get('rv_admin_' + PID) || 'null');
+  if (a && a.check === cfg.ownerHash){ ADMIN = a.token; owner = ADMIN; }
+  document.body.classList.toggle('admin', !!ADMIN);
+  $('admBadge').classList.toggle('hidden', !ADMIN);
+  if (!ADMIN && cfg.ownerHash && qs.has('admin')) $('admVeil').classList.remove('hidden');
   const sel = $('ver'); sel.textContent = '';
-  cfg.versions.forEach((v, i) => { const o = el('option', null, v.label + (i === 0 ? '（最新）' : '')); o.value = v.id; sel.appendChild(o); });
-  const want = qs.get('v'); const first = cfg.versions.find(v => v.id === want) || cfg.versions[0];
+  const lp = latestPublic();
+  vers().forEach(v => { const o = el('option', null, v.label + (v.draft ? '（下書き・非公開）' : v === lp ? '（最新）' : '')); o.value = v.id; sel.appendChild(o); });
+  const want = qs.get('v'); const first = vers().find(v => v.id === want) || vers()[0];
   sel.value = first.id;
-  sel.onchange = () => setVersion(cfg.versions.find(v => v.id === sel.value));
+  sel.onchange = () => setVersion(vers().find(v => v.id === sel.value));
   const nm = store.get('rv_name'); if (nm) $('nm').value = nm;
   setVersion(first);
   loadMarks(); setInterval(loadMarks, 60000);
@@ -360,10 +409,10 @@ function ytPlayer(box, id){
 
 function setVersion(v){
   V = v;
-  history.replaceState(null, '', `?p=${PID}&v=${encodeURIComponent(v.id)}`);
+  history.replaceState(null, '', `?p=${PID}&v=${encodeURIComponent(v.id)}` + (ADMIN ? '&admin' : ''));
   $('vnote').textContent = [v.date, v.note].filter(Boolean).join('　');
-  P = makePlayer(v);
-  drawStrip(); drawChapters(); drawMarks();
+  P = LOCK ? P : makePlayer(v);
+  drawStrip(); drawChapters(); drawMarks(); drawFixes(); drawOwner();
 }
 const chapters = () => (V && V.chapters) || [];
 function chapterAt(t){ const c = chapters(); let k = -1; for (let i = 0; i < c.length; i++) if (c[i].t <= t + 0.01) k = i; return k; }
@@ -375,6 +424,7 @@ function drawStrip(){
   c.forEach((ch, i) => { const d = el('div','seg'); const end = i + 1 < c.length ? c[i+1].t : T; d.style.left = (ch.t / T * 100) + '%'; d.style.width = ((end - ch.t) / T * 100) + '%'; d.title = ch.name; s.appendChild(d); });
   if (!c.length){ const d = el('div','seg'); d.style.left = 0; d.style.width = '100%'; s.appendChild(d); }
   MARKS.filter(m => m.ver === V.id).forEach(m => { const p = el('div', 'pin' + (m.status ? ' done' : '')); p.style.left = (m.t / T * 100) + '%'; s.appendChild(p); });
+  (V.fixes || []).forEach(f => { const p = el('div', 'pin fix'); p.style.left = (f.t / T * 100) + '%'; p.title = f.text || ''; s.appendChild(p); });
   const h = el('div','head'); h.id = 'head'; s.appendChild(h);
 }
 function stripSeek(e){ const r = $('strip').getBoundingClientRect(); const x = Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)); P.seek(x * total()); }
@@ -416,20 +466,74 @@ async function loadMarks(){
   try {
     const r = await fetch(`${CFG.api}?p=${encodeURIComponent(CFG.project || PID)}&_=${Date.now()}`);
     const j = await r.json();
-    if (j.ok){ const all = j.marks || []; DONE = all.filter(isDone); MARKS = all.filter(m => !isDone(m)); drawMarks(); drawStrip(); drawChapters(); applyLock(); }
+    if (j.ok){
+      const all = j.marks || [], ids = new Set(vers().map(v => v.id));
+      DONE = all.filter(isDone);
+      CTRL = all.filter(m => CTRL_TAGS.some(t => hasTag(m, t)));
+      MARKS = all.filter(m => !isDone(m) && !CTRL_TAGS.some(t => hasTag(m, t)) && (ADMIN || (!hasTag(m, INTERNAL) && ids.has(m.ver))));
+      drawMarks(); drawStrip(); drawChapters(); drawOwner(); applyLock();
+    }
   } catch(e){ /* 次の読み込みで直る */ }
 }
 // 最新版に「確認おわり」が届いていて、まだ修正版を出していない間は、動画を閉じて「修正中」にする
 let LOCK = false;
 function applyLock(){
-  const latest = CFG && CFG.versions[0];
-  const l = !!latest && DONE.some(m => m.ver === latest.id && m.status !== '対応済み');
+  const latest = CFG && latestPublic();
+  const l = !ADMIN && !!latest && openCount(latest) > 0 && DONE.some(m => m.ver === latest.id && m.status !== '対応済み');
   if (l === LOCK) return;
   LOCK = l;
   document.body.classList.toggle('locked', l);
   if (l){ if (P) P.pause(); $('player').textContent = ''; P = { now: () => 0, seek(){}, pause(){}, dur: () => (V && V.duration) || 1 }; $('finVeil').classList.add('hidden'); }
-  else if (V) setVersion(V);
+  else if (V) { P = makePlayer(V); drawStrip(); }
 }
+
+/* ---------- 直したところ ---------- */
+function drawFixes(){
+  const f = (V && V.fixes) || [];
+  $('fixSec').classList.toggle('hidden', !f.length);
+  const box = $('fixList'); box.textContent = '';
+  f.slice().sort((a,b) => a.t - b.t).forEach(x => {
+    const r = el('div', 'fx');
+    const j = el('button', 'jump', fmt(x.t)); j.onclick = () => { P.seek(x.t); window.scrollTo({top:0, behavior:'smooth'}); };
+    r.append(j, el('div', null, x.text || ''));
+    box.appendChild(r);
+  });
+}
+
+/* ---------- 吉田さん用（管理モード） ---------- */
+function drawOwner(){
+  const show = !!ADMIN && !!V && !!V.draft;
+  $('ownSec').classList.toggle('hidden', !show);
+  if (!show) return;
+  const mine = MARKS.filter(m => m.ver === V.id && hasTag(m, INTERNAL) && !m.status).length;
+  $('ownTxt').textContent = 'この版は下書きで、クライアントには見えていません。よければ公開、直したいところがあれば「ここを直したい」でマークしてから「作り直して」を押してください。' + (mine ? `（未対応のマーク ${mine}件）` : '');
+  const c = CTRL.filter(m => m.ver === V.id && !m.status);
+  const go = c.find(m => hasTag(m, '公開OK')), redo = c.find(m => hasTag(m, '作り直し'));
+  $('ownGo').disabled = $('ownRedo').disabled = !!(go || redo);
+  $('ownSt').textContent = go ? '公開の受け付け済みです。30分以内にクライアントのページに出ます。' : redo ? '作り直しの受け付け済みです。できたらメールでお知らせします。' : '';
+}
+async function ownerPost(tag){
+  const n = MARKS.filter(m => m.ver === V.id && hasTag(m, INTERNAL) && !m.status).length;
+  if (tag === '作り直し' && !n){ toast('先に「ここを直したい」でマークしてください'); return; }
+  $('ownGo').disabled = $('ownRedo').disabled = true;
+  const body = { a:'add', p: CFG.project || PID, ver: V.id, t: 0, ch: tag === '公開OK' ? '公開OK' : `マーク${n}件`, tags: [tag], text: '', name: '吉田', owner: ADMIN };
+  const j = await post(body);
+  if (!j){ $('ownGo').disabled = $('ownRedo').disabled = false; toast('送れませんでした'); return; }
+  CTRL.push({ id: j.id, ver: V.id, tags: [tag], status: '' });
+  drawOwner(); toast('受け付けました');
+}
+$('ownGo').onclick = () => ownerPost('公開OK');
+$('ownRedo').onclick = () => ownerPost('作り直し');
+async function admEnter(){
+  const pw = $('admPw').value.trim(); if (!pw) return;
+  const check = await sha('rv-owner:' + pw);
+  if (check !== CFG.ownerHash){ $('admErr').textContent = 'パスワードが違います。'; return; }
+  store.set('rv_admin_' + PID, JSON.stringify({ check, token: 'adm:' + await sha('rv-post:' + pw) }));
+  location.replace(`?p=${PID}&admin`);
+}
+$('admGo').onclick = admEnter;
+$('admPw').addEventListener('keydown', e => { if (e.key === 'Enter') admEnter(); });
+$('admCancel').onclick = () => $('admVeil').classList.add('hidden');
 function markCard(m, canJump){
   const c = el('div', 'mk' + (m.status ? ' done' : ''));
   const top = el('div','mk-top');
@@ -463,6 +567,7 @@ function drawMarks(){
   const cur = MARKS.filter(m => m.ver === V.id).sort((a,b) => a.t - b.t);
   const open = cur.filter(m => !m.status);
   $('cnt').textContent = `（未対応 ${open.length}／全部 ${cur.length}）`;
+  $('finishBtn').textContent = openCount(V) ? '確認おわり（お知らせする）' : 'この内容で OK（確認おわり）';
   const list = filter === 'open' ? open : cur;
   const box = $('marks'); box.textContent = '';
   if (!list.length) box.appendChild(el('div','empty', cur.length ? '未対応のマークはありません。' : 'まだマークはありません。'));
@@ -471,7 +576,7 @@ function drawMarks(){
   DONE.filter(m => m.ver === V.id).sort((a,b) => (a.at < b.at ? -1 : 1)).forEach(m => {
     const w = m.at ? new Date(m.at) : null;
     const when = w && !isNaN(w) ? `（${w.getMonth()+1}/${w.getDate()} ${String(w.getHours()).padStart(2,'0')}:${String(w.getMinutes()).padStart(2,'0')}）` : '';
-    dl.appendChild(el('div','done-item', `✓ ${m.name || ''}さんが確認を終えました${when}` + (m.text ? '\n' + m.text : '')));
+    dl.appendChild(el('div','done-item', `✓ ${m.name || ''}さん` + (m.ch === 'OK' ? `から OK をいただきました${when}` : `が確認を終えました${when}`) + (m.text ? '\n' + m.text : '')));
   });
   const old = MARKS.filter(m => m.ver !== V.id);
   $('oldWrap').classList.toggle('hidden', !old.length);
@@ -511,7 +616,7 @@ $('send').onclick = async () => {
   if (!name){ $('sendErr').textContent = 'お名前を入れてください。'; $('nm').focus(); return; }
   $('send').disabled = true; $('sendErr').textContent = '';
   const k = chapterAt(draftT);
-  const body = { a:'add', p: CFG.project || PID, ver: V.id, t: Math.round(draftT * 10) / 10, ch: k >= 0 ? chapters()[k].name : '', tags: [...picked], text, name, owner };
+  const body = { a:'add', p: CFG.project || PID, ver: V.id, t: Math.round(draftT * 10) / 10, ch: k >= 0 ? chapters()[k].name : '', tags: ADMIN ? [...picked, INTERNAL] : [...picked], text, name, owner };
   const j = await post(body);
   $('send').disabled = false;
   if (!j){ $('sendErr').textContent = '送れませんでした。電波の良いところでもう一度押してください（書いた内容は残っています）。'; return; }
@@ -529,7 +634,10 @@ function showFin(){
   P.pause();
   const n = MARKS.filter(m => m.ver === V.id && mine.has(m.id)).length;
   $('finVer').textContent = V.label;
-  $('finSum').textContent = n ? `この版に送ったマーク：${n}件` : 'この版へのマークはありません（このままで大丈夫、というお知らせになります）。';
+  const all = openCount(V);
+  $('finH').firstChild.textContent = all ? '確認おわりをお知らせ ' : 'この内容で OK をお知らせ ';
+  $('finSend').textContent = all ? 'お知らせする' : 'OK を送る';
+  $('finSum').textContent = all ? `この版へのマーク：${all}件（うち、あなたが送ったもの ${n}件）。押すと修正に入ります。` : '直すところは無し（この内容で OK）、というお知らせになります。';
   $('finNm').value = $('finNm').value || store.get('rv_name') || '';
   $('finErr').textContent = '';
   $('finVeil').classList.remove('hidden');
@@ -542,14 +650,15 @@ $('finSend').onclick = async () => {
   if (!name){ $('finErr').textContent = 'お名前を入れてください。'; $('finNm').focus(); return; }
   $('finSend').disabled = true;
   const n = MARKS.filter(m => m.ver === V.id && mine.has(m.id)).length;
-  const body = { a:'add', p: CFG.project || PID, ver: V.id, t: 0, ch: `マーク${n}件`, tags: [DONE_TAG], text, name, owner };
+  const all = openCount(V);
+  const body = { a:'add', p: CFG.project || PID, ver: V.id, t: 0, ch: all ? `マーク${all}件` : 'OK', tags: [DONE_TAG], text, name, owner };
   const j = await post(body);
   $('finSend').disabled = false;
   if (!j){ $('finErr').textContent = '送れませんでした。電波の良いところでもう一度押してください。'; return; }
   store.set('rv_name', name);
   DONE.push({ id: j.id, ver: V.id, t: 0, ch: body.ch, tags: body.tags, text, name, at: new Date().toISOString(), status:'', reply:'' });
   $('finTxt').value = ''; $('finVeil').classList.add('hidden'); drawMarks(); applyLock();
-  toast('お知らせしました。ありがとうございました');
+  toast(all ? 'お知らせしました。ありがとうございました' : 'OK をお知らせしました。ありがとうございました');
 };
 document.addEventListener('keydown', e => { if (e.key === 'Escape') $('finVeil').classList.add('hidden'); });
 
