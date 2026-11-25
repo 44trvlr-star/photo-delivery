@@ -132,6 +132,11 @@ textarea:focus,.inp:focus{border-color:var(--text);background:#fff}
 .gate-card p{font-size:13px;color:var(--sub);margin-bottom:16px}
 .gate-card .inp{text-align:center;letter-spacing:.1em;margin-bottom:10px}
 .gate-card .go{width:100%;height:48px;border-radius:12px;background:var(--text);color:#fff;font-weight:600}
+.finish{margin-top:16px;background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:14px}
+.finish-btn{width:100%;height:50px;border-radius:12px;background:var(--text);color:#fff;font-weight:600;font-size:15px}
+.finish-note{font-size:12px;color:var(--sub);margin-top:8px}
+.done-item{font-size:13px;color:var(--ok);background:var(--ok-soft);border-radius:8px;padding:8px 10px;margin-bottom:8px;white-space:pre-wrap}
+.fin-sum{font-size:14px;margin:10px 0 2px}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--dark);color:#fff;border-radius:999px;padding:10px 18px;font-size:13px;z-index:120;box-shadow:var(--shadow)}
 </style>
 </head>
@@ -197,12 +202,30 @@ textarea:focus,.inp:focus{border-color:var(--text);background:#fff}
         </div>
         <div id="marks"></div>
         <details class="old hidden" id="oldWrap"><summary id="oldSum"></summary><div id="oldMarks"></div></details>
+        <div class="finish">
+          <div id="doneList"></div>
+          <button class="finish-btn" id="finishBtn">確認おわり（お知らせする）</button>
+          <p class="finish-note">マークは「送る」を押したときに、1件ずつ届いています。全部見終わったら、このボタンでお知らせください。</p>
+        </div>
       </section>
       <section class="sec" id="chapSec">
         <div class="sec-h"><h2>場面</h2></div>
         <div class="chap" id="chap"></div>
       </section>
     </aside>
+  </div>
+</div>
+
+<div class="veil hidden" id="finVeil">
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="finH">
+    <h3 id="finH">確認おわりをお知らせ <small id="finVer"></small></h3>
+    <div class="fin-sum" id="finSum"></div>
+    <div class="lbl">ひとこと（なくても大丈夫です）</div>
+    <textarea id="finTxt" placeholder="例：全体はこれで大丈夫です。マークしたところだけお願いします。"></textarea>
+    <div class="lbl">お名前</div>
+    <input class="inp" id="finNm" placeholder="例：さくら組 担任" maxlength="40">
+    <div class="acts"><button class="cancel" id="finCancel">やめる</button><button class="send" id="finSend">お知らせする</button></div>
+    <div class="err" id="finErr"></div>
   </div>
 </div>
 
@@ -278,6 +301,9 @@ $('pw').addEventListener('keydown', e => { if (e.key === 'Enter') tryPw(); });
 /* ---------- 画面 ---------- */
 let V = null;           // 今の版
 let MARKS = [];         // サーバーのマーク
+let DONE = [];          // 確認おわりの知らせ
+const DONE_TAG = '確認完了';
+const isDone = m => (m.tags || []).includes(DONE_TAG);
 let filter = 'open';
 const mine = new Set(JSON.parse(store.get('rv_mine') || '[]'));
 let owner = store.get('rv_owner');
@@ -383,7 +409,7 @@ async function loadMarks(){
   try {
     const r = await fetch(`${CFG.api}?p=${encodeURIComponent(CFG.project || PID)}&_=${Date.now()}`);
     const j = await r.json();
-    if (j.ok){ MARKS = j.marks || []; drawMarks(); drawStrip(); drawChapters(); }
+    if (j.ok){ const all = j.marks || []; DONE = all.filter(isDone); MARKS = all.filter(m => !isDone(m)); drawMarks(); drawStrip(); drawChapters(); }
   } catch(e){ /* 次の読み込みで直る */ }
 }
 function markCard(m, canJump){
@@ -423,6 +449,12 @@ function drawMarks(){
   const box = $('marks'); box.textContent = '';
   if (!list.length) box.appendChild(el('div','empty', cur.length ? '未対応のマークはありません。' : 'まだマークはありません。'));
   list.forEach(m => box.appendChild(markCard(m, true)));
+  const dl = $('doneList'); dl.textContent = '';
+  DONE.filter(m => m.ver === V.id).sort((a,b) => (a.at < b.at ? -1 : 1)).forEach(m => {
+    const w = m.at ? new Date(m.at) : null;
+    const when = w && !isNaN(w) ? `（${w.getMonth()+1}/${w.getDate()} ${String(w.getHours()).padStart(2,'0')}:${String(w.getMinutes()).padStart(2,'0')}）` : '';
+    dl.appendChild(el('div','done-item', `✓ ${m.name || ''}さんが確認を終えました${when}` + (m.text ? '\n' + m.text : '')));
+  });
   const old = MARKS.filter(m => m.ver !== V.id);
   $('oldWrap').classList.toggle('hidden', !old.length);
   $('oldSum').textContent = `前の版へのマーク（${old.length}件）`;
@@ -472,6 +504,36 @@ $('send').onclick = async () => {
   hideSheet(); drawMarks(); drawStrip(); drawChapters(); toast('マークを送りました');
 };
 document.addEventListener('keydown', e => { if (e.key === 'Escape') hideSheet(); });
+
+/* 確認おわり */
+function showFin(){
+  if (!CFG.api){ toast('受け付けは準備中です'); return; }
+  P.pause();
+  const n = MARKS.filter(m => m.ver === V.id && mine.has(m.id)).length;
+  $('finVer').textContent = V.label;
+  $('finSum').textContent = n ? `この版に送ったマーク：${n}件` : 'この版へのマークはありません（このままで大丈夫、というお知らせになります）。';
+  $('finNm').value = $('finNm').value || store.get('rv_name') || '';
+  $('finErr').textContent = '';
+  $('finVeil').classList.remove('hidden');
+}
+$('finishBtn').onclick = showFin;
+$('finCancel').onclick = () => $('finVeil').classList.add('hidden');
+$('finVeil').addEventListener('click', e => { if (e.target === $('finVeil')) $('finVeil').classList.add('hidden'); });
+$('finSend').onclick = async () => {
+  const name = $('finNm').value.trim(), text = $('finTxt').value.trim();
+  if (!name){ $('finErr').textContent = 'お名前を入れてください。'; $('finNm').focus(); return; }
+  $('finSend').disabled = true;
+  const n = MARKS.filter(m => m.ver === V.id && mine.has(m.id)).length;
+  const body = { a:'add', p: CFG.project || PID, ver: V.id, t: 0, ch: `マーク${n}件`, tags: [DONE_TAG], text, name, owner };
+  const j = await post(body);
+  $('finSend').disabled = false;
+  if (!j){ $('finErr').textContent = '送れませんでした。電波の良いところでもう一度押してください。'; return; }
+  store.set('rv_name', name);
+  DONE.push({ id: j.id, ver: V.id, t: 0, ch: body.ch, tags: body.tags, text, name, at: new Date().toISOString(), status:'', reply:'' });
+  $('finTxt').value = ''; $('finVeil').classList.add('hidden'); drawMarks();
+  toast('お知らせしました。ありがとうございました');
+};
+document.addEventListener('keydown', e => { if (e.key === 'Escape') $('finVeil').classList.add('hidden'); });
 
 boot();
 })();
