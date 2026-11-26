@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="robots" content="noindex,nofollow">
 <title>映像チェック | FLIPSIDE</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -50,6 +50,7 @@ body.locked .dock{position:static;box-shadow:none}
 .now{display:flex;justify-content:space-between;align-items:baseline;gap:12px;font-size:13px;color:var(--sub)}
 .now b{color:var(--text);font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .now .tc{font-variant-numeric:tabular-nums;white-space:nowrap}
+html,body,button,select,textarea,video{touch-action:manipulation}
 .strip{position:relative;height:30px;margin:8px 0 10px;border-radius:6px;overflow:hidden;background:#eee;cursor:pointer;touch-action:none}
 .strip .seg{position:absolute;top:0;bottom:0;border-right:1px solid rgba(255,255,255,.9)}
 .strip .seg:nth-child(odd){background:#d9d5ce}.strip .seg:nth-child(even){background:#cbc6be}
@@ -413,6 +414,7 @@ function makePlayer(v){
   vid.src = s.type === 'drive' ? `https://www.googleapis.com/drive/v3/files/${encodeURIComponent(s.id)}?alt=media&key=${encodeURIComponent(CFG.driveKey)}` : s.url;
   if (v.poster) vid.poster = v.poster;
   box.appendChild(vid);
+  vid.addEventListener('dblclick', e => e.preventDefault()); // ダブルクリックで全画面にしない
   vid.addEventListener('error', () => toast('動画を読み込めませんでした。少し待ってから開き直してください。'));
   const keepRate = () => { vid.defaultPlaybackRate = RATE; vid.playbackRate = RATE; };
   keepRate(); vid.addEventListener('loadedmetadata', keepRate);
