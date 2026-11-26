@@ -73,6 +73,19 @@ body.admin .finish{display:none}
 .ctrl .sm{flex:0 0 auto;border:1px solid var(--line);border-radius:10px;padding:0 12px;height:46px;font-size:13px;background:var(--card)}
 .mark-btn{flex:1;height:46px;border-radius:10px;background:var(--accent);color:#fff;font-weight:600;font-size:15px;letter-spacing:.04em}
 .mark-btn:active{transform:scale(.98)}
+/* 再生速度（YouTube の設定メニュー風） */
+.spd-wrap{position:relative;flex:0 0 auto}
+.ctrl .spd{display:flex;align-items:center;gap:4px;padding:0 10px;font-variant-numeric:tabular-nums}
+.ctrl .spd svg{width:18px;height:18px;transition:transform .2s}
+.ctrl .spd.open svg{transform:rotate(30deg)}
+.ctrl .spd.fast{border-color:var(--text);background:var(--text);color:#fff}
+.spd-menu{position:absolute;right:0;bottom:calc(100% + 8px);z-index:40;min-width:200px;background:rgba(28,28,28,.94);color:#fff;border-radius:12px;padding:8px 0;box-shadow:0 8px 24px rgba(0,0,0,.3);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.spd-menu .h{font-size:13px;font-weight:600;padding:6px 16px 10px;border-bottom:1px solid rgba(255,255,255,.15);margin-bottom:6px}
+.spd-menu button{display:flex;align-items:center;width:100%;height:40px;padding:0 16px 0 12px;font-size:14px;color:#fff;text-align:left}
+.spd-menu button:hover{background:rgba(255,255,255,.1)}
+.spd-menu button i{width:28px;font-style:normal;text-align:center;visibility:hidden}
+.spd-menu button.on i{visibility:visible}
+@media(max-width:959px){.spd-menu{top:calc(100% + 8px);bottom:auto}}
 
 /* info */
 .info{padding:18px 16px 4px}
@@ -193,6 +206,10 @@ textarea:focus,.inp:focus{border-color:var(--text);background:#fff}
           <button class="sm" id="back5">−5秒</button>
           <button class="mark-btn" id="markBtn">ここを直したい</button>
           <button class="sm" id="fwd5">+5秒</button>
+          <div class="spd-wrap">
+            <button class="sm spd" id="spdBtn" aria-label="再生速度" aria-haspopup="true" aria-expanded="false"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6a.5.5 0 0 0 .1-.6l-2-3.5a.5.5 0 0 0-.6-.2l-2.5 1a7.3 7.3 0 0 0-1.7-1l-.4-2.6a.5.5 0 0 0-.5-.4h-4a.5.5 0 0 0-.5.4l-.4 2.6a7.3 7.3 0 0 0-1.7 1l-2.5-1a.5.5 0 0 0-.6.2l-2 3.5a.5.5 0 0 0 .1.6L4.6 11a7.6 7.6 0 0 0 0 2l-2.1 1.6a.5.5 0 0 0-.1.6l2 3.5c.1.2.4.3.6.2l2.5-1c.5.4 1.1.7 1.7 1l.4 2.6c0 .2.2.4.5.4h4c.3 0 .5-.2.5-.4l.4-2.6c.6-.3 1.2-.6 1.7-1l2.5 1c.2.1.5 0 .6-.2l2-3.5a.5.5 0 0 0-.1-.6zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg><span id="spdLbl">1x</span></button>
+            <div class="spd-menu hidden" id="spdMenu" role="menu"><div class="h">再生速度</div></div>
+          </div>
         </div>
       </div>
       </div>
@@ -387,6 +404,7 @@ function open(cfg){
 
 /* ---------- プレーヤー ---------- */
 let P = null;
+let RATE = 1; // 再生速度（版を替えても保つ）
 function makePlayer(v){
   const box = $('player'); box.textContent = '';
   const s = v.src || {};
@@ -396,15 +414,17 @@ function makePlayer(v){
   if (v.poster) vid.poster = v.poster;
   box.appendChild(vid);
   vid.addEventListener('error', () => toast('動画を読み込めませんでした。少し待ってから開き直してください。'));
-  return { now: () => vid.currentTime, seek: t => { vid.currentTime = Math.max(0, t); }, pause: () => vid.pause(), dur: () => vid.duration || v.duration || 0 };
+  const keepRate = () => { vid.defaultPlaybackRate = RATE; vid.playbackRate = RATE; };
+  keepRate(); vid.addEventListener('loadedmetadata', keepRate);
+  return { now: () => vid.currentTime, seek: t => { vid.currentTime = Math.max(0, t); }, pause: () => vid.pause(), dur: () => vid.duration || v.duration || 0, rate: r => { vid.defaultPlaybackRate = r; vid.playbackRate = r; } };
 }
 let ytReady;
 function ytPlayer(box, id){
   const div = el('div'); div.id = 'yt'; box.appendChild(div);
   if (!ytReady) ytReady = new Promise(res => { window.onYouTubeIframeAPIReady = res; const s = document.createElement('script'); s.src = 'https://www.youtube.com/iframe_api'; document.head.appendChild(s); });
   let yp = null;
-  ytReady.then(() => { yp = new YT.Player('yt', { videoId: id, playerVars: { playsinline: 1, rel: 0, modestbranding: 1 } }); });
-  return { now: () => yp && yp.getCurrentTime ? yp.getCurrentTime() : 0, seek: t => yp && yp.seekTo(Math.max(0,t), true), pause: () => yp && yp.pauseVideo && yp.pauseVideo(), dur: () => (yp && yp.getDuration && yp.getDuration()) || V.duration || 0 };
+  ytReady.then(() => { yp = new YT.Player('yt', { videoId: id, playerVars: { playsinline: 1, rel: 0, modestbranding: 1 }, events: { onReady: () => yp.setPlaybackRate(RATE) } }); });
+  return { now: () => yp && yp.getCurrentTime ? yp.getCurrentTime() : 0, seek: t => yp && yp.seekTo(Math.max(0,t), true), pause: () => yp && yp.pauseVideo && yp.pauseVideo(), dur: () => (yp && yp.getDuration && yp.getDuration()) || V.duration || 0, rate: r => yp && yp.setPlaybackRate && yp.setPlaybackRate(r) };
 }
 
 function setVersion(v){
@@ -459,6 +479,27 @@ setInterval(() => {
 }, 250);
 $('back5').onclick = () => P.seek(P.now() - 5);
 $('fwd5').onclick = () => P.seek(P.now() + 5);
+
+/* ---------- 再生速度 ---------- */
+const RATES = [[1, '標準'], [1.5, '1.5'], [2, '2']];
+function setRate(r){
+  RATE = r;
+  if (P && P.rate) P.rate(r);
+  $('spdLbl').textContent = r + 'x';
+  $('spdBtn').classList.toggle('fast', r !== 1);
+  $('spdMenu').querySelectorAll('button').forEach(b => b.classList.toggle('on', +b.dataset.r === r));
+}
+function spdOpen(on){ $('spdMenu').classList.toggle('hidden', !on); $('spdBtn').classList.toggle('open', on); $('spdBtn').setAttribute('aria-expanded', on); }
+RATES.forEach(([r, name]) => {
+  const b = el('button'); b.dataset.r = r; b.setAttribute('role', 'menuitemradio');
+  b.append(el('i', null, '✓'), el('span', null, name));
+  b.onclick = () => { setRate(r); spdOpen(false); };
+  $('spdMenu').appendChild(b);
+});
+$('spdBtn').onclick = e => { e.stopPropagation(); spdOpen($('spdMenu').classList.contains('hidden')); };
+document.addEventListener('click', e => { if (!e.target.closest('.spd-wrap')) spdOpen(false); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') spdOpen(false); });
+setRate(1);
 
 /* ---------- マーク ---------- */
 async function loadMarks(){
